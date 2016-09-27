@@ -10,7 +10,6 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.haidangkf.musicplayer.R;
 import com.haidangkf.musicplayer.fragment.FragmentAlbum;
@@ -47,7 +46,7 @@ public class MainActivity extends BaseActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            Toast.makeText(MainActivity.this, "You cannot go back !", Toast.LENGTH_SHORT).show();
+            super.onBackPressed();
         }
     }
 

@@ -7,7 +7,7 @@
     android:paddingBottom="5dp"
     android:paddingLeft="5dp"
     android:paddingRight="5dp"
-    tools:context=".FragmentPlay">
+    tools:context="com.haidangkf.musicplayer.fragment.FragmentPlay">
 
     <FrameLayout
         android:layout_width="match_parent"

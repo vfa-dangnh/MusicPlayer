@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.PowerManager;
 import android.provider.MediaStore;
 import android.util.Log;
 
@@ -29,6 +30,7 @@ public class MyApplication extends Application {
     static final String path = MediaStore.Audio.Media.DATA;
     static final Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
 
+    public static Context context;
     public static MediaPlayer mediaPlayer;
     public static ArrayList<Song> songList = new ArrayList<>();
     public static Song currentSong = new Song();
@@ -42,7 +44,8 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
-        songList = getAllMusicList(getApplicationContext());
+        context = getApplicationContext();
+        songList = getAllMusicList(context);
         mediaPlayer = new MediaPlayer();
         currentSong = songList.get(0);
         currentPosition = 0;
@@ -55,6 +58,7 @@ public class MyApplication extends Application {
             mediaPlayer.release();
 
             mediaPlayer = new MediaPlayer();
+            mediaPlayer.setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK);
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mediaPlayer.setDataSource(currentSong.getPath());
             mediaPlayer.prepare();
@@ -114,13 +118,13 @@ public class MyApplication extends Application {
             if (currentPosition < numOfSong - 1) {
                 currentPosition++;
                 currentSong = songList.get(currentPosition);
-                Log.i("my_log", "position = "+currentPosition);
+                Log.i("my_log", "position = " + currentPosition);
                 playBackMusic();
                 displaySongInfo();
             } else {
                 currentPosition = 0;
                 currentSong = songList.get(currentPosition);
-                Log.i("my_log", "position = "+currentPosition);
+                Log.i("my_log", "position = " + currentPosition);
                 playBackMusic();
                 displaySongInfo();
             }
@@ -128,7 +132,7 @@ public class MyApplication extends Application {
             Random rand = new Random();
             currentPosition = rand.nextInt(numOfSong);
             currentSong = songList.get(currentPosition);
-            Log.i("my_log", "position = "+currentPosition);
+            Log.i("my_log", "position = " + currentPosition);
             playBackMusic();
             displaySongInfo();
         }
@@ -141,13 +145,13 @@ public class MyApplication extends Application {
             if (currentPosition > 0) {
                 currentPosition--;
                 currentSong = songList.get(currentPosition);
-                Log.i("my_log", "position = "+currentPosition);
+                Log.i("my_log", "position = " + currentPosition);
                 playBackMusic();
                 displaySongInfo();
             } else {
                 currentPosition = numOfSong - 1;
                 currentSong = songList.get(currentPosition);
-                Log.i("my_log", "position = "+currentPosition);
+                Log.i("my_log", "position = " + currentPosition);
                 playBackMusic();
                 displaySongInfo();
             }
@@ -155,7 +159,7 @@ public class MyApplication extends Application {
             Random rand = new Random();
             currentPosition = rand.nextInt(numOfSong);
             currentSong = songList.get(currentPosition);
-            Log.i("my_log", "position = "+currentPosition);
+            Log.i("my_log", "position = " + currentPosition);
             playBackMusic();
             displaySongInfo();
         }
