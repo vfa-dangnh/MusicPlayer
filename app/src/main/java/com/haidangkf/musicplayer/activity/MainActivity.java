@@ -2,23 +2,26 @@ package com.haidangkf.musicplayer.activity;
 
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.haidangkf.musicplayer.R;
-import com.haidangkf.musicplayer.fragment.FragmentAlbum;
-import com.haidangkf.musicplayer.fragment.FragmentArtist;
-import com.haidangkf.musicplayer.fragment.FragmentList;
-import com.haidangkf.musicplayer.fragment.FragmentPlay;
+import com.haidangkf.musicplayer.utils.CircleTransform;
 
 public class MainActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    View navHeader;
+    ImageView imgProfile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,9 +38,19 @@ public class MainActivity extends BaseActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        navigationView.getMenu().getItem(0).setChecked(true);
 
+        // Navigation view header
+        navHeader = navigationView.getHeaderView(0);
+        imgProfile = (ImageView) navHeader.findViewById(R.id.img_profile);
 
-        loadFragmentList(); // load the list of songs first
+        // Loading profile image
+        Glide.with(context).load(R.drawable.profile_img)
+                .crossFade()
+                .thumbnail(0.5f)
+                .bitmapTransform(new CircleTransform(this))
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .into(imgProfile);
     }
 
     @Override
@@ -64,10 +77,22 @@ public class MainActivity extends BaseActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-//        if (id == R.id.action_settings) {
-//            return true;
-//        }
+        if (id == R.id.action_song) {
+            Toast.makeText(getApplicationContext(), "get song", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+
+        if (id == R.id.action_album) {
+            Toast.makeText(getApplicationContext(), "get album", Toast.LENGTH_SHORT).show();
+        }
+
+        if (id == R.id.action_artist) {
+            Toast.makeText(getApplicationContext(), "get artist", Toast.LENGTH_SHORT).show();
+        }
+
+        if (id == R.id.action_folder) {
+            Toast.makeText(getApplicationContext(), "get folder", Toast.LENGTH_SHORT).show();
+        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -78,14 +103,8 @@ public class MainActivity extends BaseActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_play) {
-            loadFragmentPlay();
-        } else if (id == R.id.nav_list) {
-            loadFragmentList();
-        } else if (id == R.id.nav_album) {
-            loadFragmentAlbum();
-        } else if (id == R.id.nav_artist) {
-            loadFragmentArtist();
+        if (id == R.id.nav_online) {
+        } else if (id == R.id.nav_local) {
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -95,32 +114,12 @@ public class MainActivity extends BaseActivity
 
     // ------------------------------------------------------------
 
-    public void loadFragmentPlay() {
-        Fragment fragment = new FragmentPlay();
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.frameView, fragment);
-        transaction.commit();
-    }
+//    public void loadFragmentPlay() {
+//        Fragment fragment = new FragmentPlay();
+//        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+//        transaction.replace(R.id.frameView, fragment);
+//        transaction.commit();
+//    }
 
-    public void loadFragmentList() {
-        Fragment fragment = new FragmentList();
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.frameView, fragment);
-        transaction.commit();
-    }
-
-    public void loadFragmentAlbum() {
-        Fragment fragment = new FragmentAlbum();
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.frameView, fragment);
-        transaction.commit();
-    }
-
-    public void loadFragmentArtist() {
-        Fragment fragment = new FragmentArtist();
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.frameView, fragment);
-        transaction.commit();
-    }
 
 }

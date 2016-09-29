@@ -3,21 +3,13 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_play"
-            android:icon="@drawable/ic_play"
-            android:title="Play" />
+            android:id="@+id/nav_local"
+            android:icon="@drawable/ic_photo_library_black_24dp"
+            android:title="Local Music" />
         <item
-            android:id="@+id/nav_list"
-            android:icon="@drawable/ic_list"
-            android:title="List" />
-        <item
-            android:id="@+id/nav_album"
-            android:icon="@drawable/ic_album"
-            android:title="Album" />
-        <item
-            android:id="@+id/nav_artist"
-            android:icon="@drawable/ic_artist"
-            android:title="Artist" />
+            android:id="@+id/nav_online"
+            android:icon="@drawable/ic_home_black_24dp"
+            android:title="Online Music" />
     </group>
 
 </menu>
