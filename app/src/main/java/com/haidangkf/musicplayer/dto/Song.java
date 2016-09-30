@@ -2,37 +2,32 @@ package com.haidangkf.musicplayer.dto;
 
 public class Song {
 
-    private String songName;
-    private String album;
+    private String name;
     private String artist;
+    private String album;
+    private String composer;
+    private String duration;
     private String path;
-    private boolean isPlaying;
 
     public Song() {
 
     }
 
-    public Song(String songName, String album, String artist, String path) {
-        this.setSongName(songName);
-        this.setAlbum(album);
+    public Song(String name, String artist, String album, String composer, String duration, String path) {
+        this.setName(name);
         this.setArtist(artist);
+        this.setAlbum(album);
+        this.setComposer(composer);
+        this.setDuration(duration);
         this.setPath(path);
     }
 
-    public String getSongName() {
-        return songName;
+    public String getName() {
+        return name;
     }
 
-    public void setSongName(String songName) {
-        this.songName = songName;
-    }
-
-    public String getAlbum() {
-        return album;
-    }
-
-    public void setAlbum(String album) {
-        this.album = album;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getArtist() {
@@ -43,19 +38,35 @@ public class Song {
         this.artist = artist;
     }
 
+    public String getAlbum() {
+        return album;
+    }
+
+    public void setAlbum(String album) {
+        this.album = album;
+    }
+
+    public String getComposer() {
+        return composer;
+    }
+
+    public void setComposer(String composer) {
+        this.composer = composer;
+    }
+
+    public String getDuration() {
+        return duration;
+    }
+
+    public void setDuration(String duration) {
+        this.duration = duration;
+    }
+
     public String getPath() {
         return path;
     }
 
     public void setPath(String path) {
         this.path = path;
-    }
-
-    public boolean isPlaying() {
-        return isPlaying;
-    }
-
-    public void setPlaying(boolean playing) {
-        isPlaying = playing;
     }
 }

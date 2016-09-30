@@ -1,11 +1,16 @@
 package com.haidangkf.musicplayer.activity;
 
+import android.app.ActivityManager;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,13 +20,17 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.haidangkf.musicplayer.R;
+import com.haidangkf.musicplayer.fragment.SongFragment;
+import com.haidangkf.musicplayer.service.MyService;
 import com.haidangkf.musicplayer.utils.CircleTransform;
+import com.haidangkf.musicplayer.utils.Common;
 
 public class MainActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     View navHeader;
     ImageView imgProfile;
+    FragmentManager fm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +42,7 @@ public class MainActivity extends BaseActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
+        drawer.setDrawerListener(toggle);
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -51,13 +60,21 @@ public class MainActivity extends BaseActivity
                 .bitmapTransform(new CircleTransform(this))
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(imgProfile);
+
+        fm = context.getSupportFragmentManager();
+        loadSongFragment();
     }
 
     @Override
     public void onBackPressed() {
+        Log.d(Common.TAG, "count = " + fm.getBackStackEntryCount());
+
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
+        } else if (fm.getBackStackEntryCount() == 1) {
+            super.onBackPressed();
+            super.onBackPressed();
         } else {
             super.onBackPressed();
         }
@@ -105,6 +122,7 @@ public class MainActivity extends BaseActivity
 
         if (id == R.id.nav_online) {
         } else if (id == R.id.nav_local) {
+            loadSongFragment();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -114,12 +132,36 @@ public class MainActivity extends BaseActivity
 
     // ------------------------------------------------------------
 
-//    public void loadFragmentPlay() {
-//        Fragment fragment = new FragmentPlay();
+    public void loadSongFragment() {
+//        Fragment fragment = new SongFragment();
 //        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 //        transaction.replace(R.id.frameView, fragment);
 //        transaction.commit();
-//    }
 
+        fm.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
+        startFragment(SongFragment.class.getName(), null, true);
+    }
+
+    // ------------------------------------------------------------
+
+    public static void startService(Context context) {
+        Log.d(Common.TAG, "start Service");
+        context.startService(new Intent(context, MyService.class));
+    }
+
+    public static void stopService(Context context) {
+        Log.d(Common.TAG, "stop Service");
+        context.stopService(new Intent(context, MyService.class));
+    }
+
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
