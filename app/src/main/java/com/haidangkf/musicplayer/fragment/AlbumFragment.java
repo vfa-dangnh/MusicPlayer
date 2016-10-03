@@ -8,6 +8,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,12 +22,12 @@ import java.util.ArrayList;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class SongFragment extends BaseFragment {
+public class AlbumFragment extends BaseFragment {
 
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
 
-    ArrayList<Song> songList = new ArrayList<>();
+    ArrayList<String> albumList = new ArrayList<>();
     RecyclerView.Adapter<MyViewHolder> mAdapter;
     SongUtil songUtil;
 
@@ -39,23 +40,13 @@ public class SongFragment extends BaseFragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        setTitle("Song List");
+        setTitle("Album List");
 
         songUtil = new SongUtil(context);
-        songList = songUtil.getAllSongs(); // default get all songs
+        this.albumList = songUtil.getAlbumList();
 
-        Bundle bundle = this.getArguments();
-        if (bundle != null) {
-            String type = bundle.getString("type");
-            if (type.equals("album")) {
-                songList = bundle.getParcelableArrayList("songForAlbum");
-            } else if (type.equals("artist")) {
-                songList = bundle.getParcelableArrayList("songForArtist");
-            }
-        }
-
-        if (songList.size() == 0) {
-            Toast.makeText(context, "No song was found", Toast.LENGTH_LONG).show();
+        if (albumList.size() == 0) {
+            Toast.makeText(context, "No album was found", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -69,15 +60,18 @@ public class SongFragment extends BaseFragment {
 
             @Override
             public void onBindViewHolder(MyViewHolder holder, int position) {
-                holder.tvName.setText(songList.get(position).getName());
-                holder.tvArtist.setText(songList.get(position).getArtist());
-                long duration = Long.parseLong(songList.get(position).getDuration());
+                long duration = 0;
+                ArrayList<Song> songList = songUtil.getSongForAlbum(albumList.get(position));
+                for (Song song : songList) {
+                    duration += Long.parseLong(song.getDuration());
+                }
                 holder.tvDuration.setText(songUtil.milliSecondsToTimer(duration));
+                holder.tvName.setText(albumList.get(position));
             }
 
             @Override
             public int getItemCount() {
-                return songList.size();
+                return albumList.size();
             }
         };
 
@@ -99,10 +93,12 @@ public class SongFragment extends BaseFragment {
     }
 
     class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        @BindView(R.id.img)
+        ImageView img;
         @BindView(R.id.tvName)
         TextView tvName;
         @BindView(R.id.tvNote)
-        TextView tvArtist;
+        TextView tvNote;
         @BindView(R.id.tvDuration)
         TextView tvDuration;
 
@@ -110,14 +106,17 @@ public class SongFragment extends BaseFragment {
             super(v);
             ButterKnife.bind(this, v);
             v.setOnClickListener(this);
+            img.setImageResource(R.drawable.ic_disc);
+            tvNote.setVisibility(View.INVISIBLE);
         }
 
         @Override
         public void onClick(View v) {
+            ArrayList<Song> songList = songUtil.getSongForAlbum(albumList.get(getAdapterPosition()));
             Bundle bundle = new Bundle();
-            bundle.putParcelableArrayList("songList", songList);
-            bundle.putInt("songIndex", getAdapterPosition());
-            startFragment(PlayerFragment.class.getName(), bundle, true);
+            bundle.putString("type", "album");
+            bundle.putParcelableArrayList("songForAlbum", songList);
+            startFragment(SongFragment.class.getName(), bundle, true);
         }
     }
 

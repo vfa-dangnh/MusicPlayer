@@ -66,6 +66,58 @@ public class SongUtil {
         return songArrayList;
     }
 
+    public ArrayList<String> getAlbumList() {
+        ArrayList<String> albumList = new ArrayList<>();
+        ArrayList<Song> songList = getAllSongs();
+
+        for (Song song : songList){
+            if(!albumList.contains(song.getAlbum())){
+                albumList.add(song.getAlbum());
+            }
+        }
+
+        return albumList;
+    }
+
+    public ArrayList<Song> getSongForAlbum(String albumName) {
+        ArrayList<Song> allSongs = getAllSongs();
+        ArrayList<Song> songList = new ArrayList<>();
+
+        for (Song song : allSongs){
+            if(song.getAlbum().equals(albumName)){
+                songList.add(song);
+            }
+        }
+
+        return songList;
+    }
+
+    public ArrayList<String> getArtistList() {
+        ArrayList<String> artistList = new ArrayList<>();
+        ArrayList<Song> songList = getAllSongs();
+
+        for (Song song : songList){
+            if(!artistList.contains(song.getArtist())){
+                artistList.add(song.getArtist());
+            }
+        }
+
+        return artistList;
+    }
+
+    public ArrayList<Song> getSongForArtist(String artistName) {
+        ArrayList<Song> allSongs = getAllSongs();
+        ArrayList<Song> songList = new ArrayList<>();
+
+        for (Song song : allSongs){
+            if(song.getArtist().equals(artistName)){
+                songList.add(song);
+            }
+        }
+
+        return songList;
+    }
+
     //////////////////////////////// Timer Util ////////////////////////////////
 
     public String milliSecondsToTimer(long milliseconds) {

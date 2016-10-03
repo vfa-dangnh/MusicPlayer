@@ -1,6 +1,9 @@
 package com.haidangkf.musicplayer.dto;
 
-public class Song {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Song implements Parcelable {
 
     private String name;
     private String artist;
@@ -69,4 +72,41 @@ public class Song {
     public void setPath(String path) {
         this.path = path;
     }
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.name);
+        dest.writeString(this.artist);
+        dest.writeString(this.album);
+        dest.writeString(this.composer);
+        dest.writeString(this.duration);
+        dest.writeString(this.path);
+    }
+
+    protected Song(Parcel in) {
+        this.name = in.readString();
+        this.artist = in.readString();
+        this.album = in.readString();
+        this.composer = in.readString();
+        this.duration = in.readString();
+        this.path = in.readString();
+    }
+
+    public static final Parcelable.Creator<Song> CREATOR = new Parcelable.Creator<Song>() {
+        @Override
+        public Song createFromParcel(Parcel source) {
+            return new Song(source);
+        }
+
+        @Override
+        public Song[] newArray(int size) {
+            return new Song[size];
+        }
+    };
 }

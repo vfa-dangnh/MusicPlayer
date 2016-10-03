@@ -20,6 +20,8 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.haidangkf.musicplayer.R;
+import com.haidangkf.musicplayer.fragment.AlbumFragment;
+import com.haidangkf.musicplayer.fragment.ArtistFragment;
 import com.haidangkf.musicplayer.fragment.SongFragment;
 import com.haidangkf.musicplayer.service.MyService;
 import com.haidangkf.musicplayer.utils.CircleTransform;
@@ -62,7 +64,7 @@ public class MainActivity extends BaseActivity
                 .into(imgProfile);
 
         fm = context.getSupportFragmentManager();
-        loadSongFragment();
+        loadFragment(SongFragment.class.getName(), true);
     }
 
     @Override
@@ -81,6 +83,11 @@ public class MainActivity extends BaseActivity
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
@@ -95,16 +102,16 @@ public class MainActivity extends BaseActivity
         int id = item.getItemId();
 
         if (id == R.id.action_song) {
-            Toast.makeText(getApplicationContext(), "get song", Toast.LENGTH_SHORT).show();
+            loadFragment(SongFragment.class.getName(), false);
             return true;
         }
 
         if (id == R.id.action_album) {
-            Toast.makeText(getApplicationContext(), "get album", Toast.LENGTH_SHORT).show();
+            loadFragment(AlbumFragment.class.getName(), false);
         }
 
         if (id == R.id.action_artist) {
-            Toast.makeText(getApplicationContext(), "get artist", Toast.LENGTH_SHORT).show();
+            loadFragment(ArtistFragment.class.getName(), false);
         }
 
         if (id == R.id.action_folder) {
@@ -122,7 +129,7 @@ public class MainActivity extends BaseActivity
 
         if (id == R.id.nav_online) {
         } else if (id == R.id.nav_local) {
-            loadSongFragment();
+            loadFragment(SongFragment.class.getName(), true);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -132,15 +139,11 @@ public class MainActivity extends BaseActivity
 
     // ------------------------------------------------------------
 
-    public void loadSongFragment() {
-//        Fragment fragment = new SongFragment();
-//        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-//        transaction.replace(R.id.frameView, fragment);
-//        transaction.commit();
-
-        fm.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-
-        startFragment(SongFragment.class.getName(), null, true);
+    public void loadFragment(String className, boolean clearAllBackStack) {
+        if (clearAllBackStack) {
+            fm.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        }
+        startFragment(className, null, true);
     }
 
     // ------------------------------------------------------------
