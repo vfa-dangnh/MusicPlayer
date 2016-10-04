@@ -1,5 +1,6 @@
 package com.haidangkf.musicplayer.fragment;
 
+import android.content.DialogInterface;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
@@ -7,13 +8,17 @@ import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.haidangkf.musicplayer.R;
 import com.haidangkf.musicplayer.dto.Song;
+import com.haidangkf.musicplayer.utils.Common;
 import com.haidangkf.musicplayer.utils.SongUtil;
 
 import java.io.IOException;
@@ -35,8 +40,8 @@ public class PlayerFragment extends BaseFragment implements
     ImageButton btnNext;
     @BindView(R.id.btnPrevious)
     ImageButton btnPrevious;
-    @BindView(R.id.btnPlaylist)
-    ImageButton btnPlaylist;
+    @BindView(R.id.btnInfo)
+    ImageButton btnInfo;
     @BindView(R.id.btnRepeat)
     ImageButton btnRepeat;
     @BindView(R.id.btnShuffle)
@@ -49,6 +54,8 @@ public class PlayerFragment extends BaseFragment implements
     TextView songCurrentDurationLabel;
     @BindView(R.id.songTotalDurationLabel)
     TextView songTotalDurationLabel;
+    @BindView(R.id.imgDisc)
+    ImageView imgDisc;
 
     private MediaPlayer mp;
     private Handler mHandler = new Handler(); // to update UI timer, progress bar...
@@ -58,6 +65,7 @@ public class PlayerFragment extends BaseFragment implements
     private int currentSongIndex = -1;
     private boolean isShuffle = false;
     private boolean isRepeat = false;
+    Animation rotateAnim;
     private ArrayList<Song> songsList = new ArrayList<>();
 
     @Override
@@ -78,6 +86,7 @@ public class PlayerFragment extends BaseFragment implements
         mp = new MediaPlayer();
         mp.setOnCompletionListener(this);
         songUtil = new SongUtil(context);
+        rotateAnim = AnimationUtils.loadAnimation(context, R.anim.rotate);
 
         // SeekBar change listener
         songProgressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -112,6 +121,7 @@ public class PlayerFragment extends BaseFragment implements
         // play song at index
         if (songsList != null && songsList.size() > 0 && currentSongIndex >= 0) {
             playSong(currentSongIndex);
+            imgDisc.startAnimation(rotateAnim);
         } else {
             songProgressBar.setEnabled(false);
             btnPlay.setEnabled(false);
@@ -135,11 +145,13 @@ public class PlayerFragment extends BaseFragment implements
                 if (mp.isPlaying()) {
                     if (mp != null) {
                         mp.pause();
+                        imgDisc.clearAnimation();
                         btnPlay.setImageResource(R.drawable.btn_play);
                     }
                 } else {
                     if (mp != null) {
                         mp.start();
+                        imgDisc.startAnimation(rotateAnim);
                         btnPlay.setImageResource(R.drawable.btn_pause);
                     }
                 }
@@ -207,6 +219,7 @@ public class PlayerFragment extends BaseFragment implements
                     playSong(0);
                     currentSongIndex = 0;
                 }
+                imgDisc.startAnimation(rotateAnim);
             }
         });
 
@@ -226,6 +239,7 @@ public class PlayerFragment extends BaseFragment implements
                     playSong(songsList.size() - 1);
                     currentSongIndex = songsList.size() - 1;
                 }
+                imgDisc.startAnimation(rotateAnim);
             }
         });
 
@@ -279,13 +293,18 @@ public class PlayerFragment extends BaseFragment implements
          * Button Click event for Play list click event
          * Launches list activity which displays list of songs
          * */
-        btnPlaylist.setOnClickListener(new View.OnClickListener() {
+        btnInfo.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View arg0) {
-//                Intent i = new Intent(context, PlayListActivity.class);
-//                startActivityForResult(i, 100);
-                Toast.makeText(context, "click Playlist", Toast.LENGTH_SHORT).show();
+                String title = songsList.get(currentSongIndex).getName();
+                String message = songsList.get(currentSongIndex).toString();
+                Common.dialogConfirmOk(context, title, message, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
             }
         });
     }

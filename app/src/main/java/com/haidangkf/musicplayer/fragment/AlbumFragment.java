@@ -4,8 +4,10 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -59,19 +61,44 @@ public class AlbumFragment extends BaseFragment {
             }
 
             @Override
-            public void onBindViewHolder(MyViewHolder holder, int position) {
-                long duration = 0;
+            public void onBindViewHolder(MyViewHolder holder, final int position) {
                 ArrayList<Song> songList = songUtil.getSongForAlbum(albumList.get(position));
-                for (Song song : songList) {
-                    duration += Long.parseLong(song.getDuration());
-                }
+                long duration = songUtil.getTotalDuration(songList);
                 holder.tvDuration.setText(songUtil.milliSecondsToTimer(duration));
                 holder.tvName.setText(albumList.get(position));
+                holder.tvNote.setText(songList.size()+" song(s)");
+                holder.btnOption.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        showPopupMenu(v, position);
+                    }
+                });
             }
 
             @Override
             public int getItemCount() {
                 return albumList.size();
+            }
+
+            public void showPopupMenu(View v, final int position) {
+                PopupMenu popup = new PopupMenu(v.getContext(), v);
+                popup.getMenuInflater().inflate(R.menu.popup_menu_song_list, popup.getMenu());
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch (item.getItemId()) {
+                            case R.id.action_open:
+                                ArrayList<Song> songList = songUtil.getSongForAlbum(albumList.get(position));
+                                Bundle bundle = new Bundle();
+                                bundle.putString("type", "album");
+                                bundle.putParcelableArrayList("songForAlbum", songList);
+                                startFragment(SongFragment.class.getName(), bundle, true);
+                                break;
+                        }
+                        return true;
+                    }
+                });
+                popup.show();
             }
         };
 
@@ -101,13 +128,14 @@ public class AlbumFragment extends BaseFragment {
         TextView tvNote;
         @BindView(R.id.tvDuration)
         TextView tvDuration;
+        @BindView(R.id.btnOption)
+        ImageView btnOption;
 
         public MyViewHolder(View v) {
             super(v);
             ButterKnife.bind(this, v);
             v.setOnClickListener(this);
             img.setImageResource(R.drawable.ic_disc);
-            tvNote.setVisibility(View.INVISIBLE);
         }
 
         @Override

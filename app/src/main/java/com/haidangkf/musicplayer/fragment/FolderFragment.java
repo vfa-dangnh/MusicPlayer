@@ -24,12 +24,12 @@ import java.util.ArrayList;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class ArtistFragment extends BaseFragment {
+public class FolderFragment extends BaseFragment {
 
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
 
-    ArrayList<String> artistList = new ArrayList<>();
+    ArrayList<String> folderList = new ArrayList<>();
     RecyclerView.Adapter<MyViewHolder> mAdapter;
     SongUtil songUtil;
 
@@ -42,13 +42,13 @@ public class ArtistFragment extends BaseFragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        setTitle("Artist List");
+        setTitle("Folder List");
 
         songUtil = new SongUtil(context);
-        this.artistList = songUtil.getArtistList();
+        this.folderList = songUtil.getFolderList();
 
-        if (artistList.size() == 0) {
-            Toast.makeText(context, "No artist was found", Toast.LENGTH_LONG).show();
+        if (folderList.size() == 0) {
+            Toast.makeText(context, "No folder was found", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -62,11 +62,13 @@ public class ArtistFragment extends BaseFragment {
 
             @Override
             public void onBindViewHolder(MyViewHolder holder, final int position) {
-                ArrayList<Song> songList = songUtil.getSongForArtist(artistList.get(position));
+                ArrayList<Song> songList = songUtil.getSongInFolder(folderList.get(position));
                 long duration = songUtil.getTotalDuration(songList);
                 holder.tvDuration.setText(songUtil.milliSecondsToTimer(duration));
-                holder.tvName.setText(artistList.get(position));
-                holder.tvNote.setText(songList.size()+" song(s)");
+                String name = folderList.get(position);
+                name = name.substring(name.lastIndexOf('/') + 1);
+                holder.tvName.setText(name);
+                holder.tvNote.setText(songList.size() + " song(s)");
                 holder.btnOption.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -77,7 +79,7 @@ public class ArtistFragment extends BaseFragment {
 
             @Override
             public int getItemCount() {
-                return artistList.size();
+                return folderList.size();
             }
 
             public void showPopupMenu(View v, final int position) {
@@ -88,10 +90,10 @@ public class ArtistFragment extends BaseFragment {
                     public boolean onMenuItemClick(MenuItem item) {
                         switch (item.getItemId()) {
                             case R.id.action_open:
-                                ArrayList<Song> songList = songUtil.getSongForArtist(artistList.get(position));
+                                ArrayList<Song> songList = songUtil.getSongInFolder(folderList.get(position));
                                 Bundle bundle = new Bundle();
-                                bundle.putString("type", "artist");
-                                bundle.putParcelableArrayList("songForArtist", songList);
+                                bundle.putString("type", "folder");
+                                bundle.putParcelableArrayList("songForFolder", songList);
                                 startFragment(SongFragment.class.getName(), bundle, true);
                                 break;
                         }
@@ -135,15 +137,15 @@ public class ArtistFragment extends BaseFragment {
             super(v);
             ButterKnife.bind(this, v);
             v.setOnClickListener(this);
-            img.setImageResource(R.drawable.ic_artist);
+            img.setImageResource(R.drawable.ic_folder);
         }
 
         @Override
         public void onClick(View v) {
-            ArrayList<Song> songList = songUtil.getSongForArtist(artistList.get(getAdapterPosition()));
+            ArrayList<Song> songList = songUtil.getSongInFolder(folderList.get(getAdapterPosition()));
             Bundle bundle = new Bundle();
-            bundle.putString("type", "artist");
-            bundle.putParcelableArrayList("songForArtist", songList);
+            bundle.putString("type", "folder");
+            bundle.putParcelableArrayList("songForFolder", songList);
             startFragment(SongFragment.class.getName(), bundle, true);
         }
     }

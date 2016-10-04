@@ -70,8 +70,8 @@ public class SongUtil {
         ArrayList<String> albumList = new ArrayList<>();
         ArrayList<Song> songList = getAllSongs();
 
-        for (Song song : songList){
-            if(!albumList.contains(song.getAlbum())){
+        for (Song song : songList) {
+            if (!albumList.contains(song.getAlbum())) {
                 albumList.add(song.getAlbum());
             }
         }
@@ -83,8 +83,8 @@ public class SongUtil {
         ArrayList<Song> allSongs = getAllSongs();
         ArrayList<Song> songList = new ArrayList<>();
 
-        for (Song song : allSongs){
-            if(song.getAlbum().equals(albumName)){
+        for (Song song : allSongs) {
+            if (song.getAlbum().equals(albumName)) {
                 songList.add(song);
             }
         }
@@ -96,8 +96,8 @@ public class SongUtil {
         ArrayList<String> artistList = new ArrayList<>();
         ArrayList<Song> songList = getAllSongs();
 
-        for (Song song : songList){
-            if(!artistList.contains(song.getArtist())){
+        for (Song song : songList) {
+            if (!artistList.contains(song.getArtist())) {
                 artistList.add(song.getArtist());
             }
         }
@@ -109,13 +109,48 @@ public class SongUtil {
         ArrayList<Song> allSongs = getAllSongs();
         ArrayList<Song> songList = new ArrayList<>();
 
-        for (Song song : allSongs){
-            if(song.getArtist().equals(artistName)){
+        for (Song song : allSongs) {
+            if (song.getArtist().equals(artistName)) {
                 songList.add(song);
             }
         }
 
         return songList;
+    }
+
+    public ArrayList<String> getFolderList() {
+        ArrayList<String> folderList = new ArrayList<>();
+        ArrayList<Song> songList = getAllSongs();
+
+        for (Song song : songList) {
+            int lastIndexOfSlash = song.getPath().lastIndexOf('/');
+            if (lastIndexOfSlash >= 0 && !folderList.contains(song.getPath().substring(0, lastIndexOfSlash))) {
+                folderList.add(song.getPath().substring(0, lastIndexOfSlash));
+            }
+        }
+
+        return folderList;
+    }
+
+    public ArrayList<Song> getSongInFolder(String folderPath) {
+        ArrayList<Song> allSongs = getAllSongs();
+        ArrayList<Song> songList = new ArrayList<>();
+
+        for (Song song : allSongs) {
+            if (song.getPath().startsWith(folderPath)) {
+                songList.add(song);
+            }
+        }
+
+        return songList;
+    }
+
+    public long getTotalDuration(ArrayList<Song> songList) {
+        long duration = 0;
+        for (Song song : songList) {
+            duration += Long.parseLong(song.getDuration());
+        }
+        return duration;
     }
 
     //////////////////////////////// Timer Util ////////////////////////////////

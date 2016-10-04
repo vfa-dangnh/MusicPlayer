@@ -1,18 +1,23 @@
 package com.haidangkf.musicplayer.fragment;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.haidangkf.musicplayer.R;
 import com.haidangkf.musicplayer.dto.Song;
+import com.haidangkf.musicplayer.utils.Common;
 import com.haidangkf.musicplayer.utils.DividerItemDecoration;
 import com.haidangkf.musicplayer.utils.SongUtil;
 
@@ -28,7 +33,7 @@ public class SongFragment extends BaseFragment {
 
     ArrayList<Song> songList = new ArrayList<>();
     RecyclerView.Adapter<MyViewHolder> mAdapter;
-    SongUtil songUtil;
+    public static SongUtil songUtil;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -51,6 +56,8 @@ public class SongFragment extends BaseFragment {
                 songList = bundle.getParcelableArrayList("songForAlbum");
             } else if (type.equals("artist")) {
                 songList = bundle.getParcelableArrayList("songForArtist");
+            } else if (type.equals("folder")) {
+                songList = bundle.getParcelableArrayList("songForFolder");
             }
         }
 
@@ -68,16 +75,52 @@ public class SongFragment extends BaseFragment {
             }
 
             @Override
-            public void onBindViewHolder(MyViewHolder holder, int position) {
+            public void onBindViewHolder(MyViewHolder holder, final int position) {
                 holder.tvName.setText(songList.get(position).getName());
                 holder.tvArtist.setText(songList.get(position).getArtist());
                 long duration = Long.parseLong(songList.get(position).getDuration());
                 holder.tvDuration.setText(songUtil.milliSecondsToTimer(duration));
+                holder.btnOption.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        showPopupMenu(v, position);
+                    }
+                });
             }
 
             @Override
             public int getItemCount() {
                 return songList.size();
+            }
+
+            public void showPopupMenu(View v, final int position) {
+                PopupMenu popup = new PopupMenu(v.getContext(), v);
+                popup.getMenuInflater().inflate(R.menu.popup_menu_song, popup.getMenu());
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch (item.getItemId()) {
+                            case R.id.action_play:
+                                Bundle bundle = new Bundle();
+                                bundle.putParcelableArrayList("songList", songList);
+                                bundle.putInt("songIndex", position);
+                                startFragment(PlayerFragment.class.getName(), bundle, true);
+                                break;
+                            case R.id.action_detail:
+                                String title = songList.get(position).getName();
+                                String message = songList.get(position).toString();
+                                Common.dialogConfirmOk(context, title, message, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.cancel();
+                                    }
+                                });
+                                break;
+                        }
+                        return true;
+                    }
+                });
+                popup.show();
             }
         };
 
@@ -105,6 +148,8 @@ public class SongFragment extends BaseFragment {
         TextView tvArtist;
         @BindView(R.id.tvDuration)
         TextView tvDuration;
+        @BindView(R.id.btnOption)
+        ImageView btnOption;
 
         public MyViewHolder(View v) {
             super(v);
@@ -119,6 +164,7 @@ public class SongFragment extends BaseFragment {
             bundle.putInt("songIndex", getAdapterPosition());
             startFragment(PlayerFragment.class.getName(), bundle, true);
         }
+
     }
 
 }

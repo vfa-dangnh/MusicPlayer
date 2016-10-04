@@ -3,6 +3,8 @@ package com.haidangkf.musicplayer.dto;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.haidangkf.musicplayer.fragment.SongFragment;
+
 public class Song implements Parcelable {
 
     private String name;
@@ -73,6 +75,17 @@ public class Song implements Parcelable {
         this.path = path;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder s = new StringBuilder();
+        s.append("Name: " + name + "\n");
+        s.append("Artist: " + artist + "\n");
+        s.append("Album: " + album + "\n");
+        s.append("Composer: " + composer + "\n");
+        s.append("Duration: " + SongFragment.songUtil.milliSecondsToTimer(Long.parseLong(duration)) + "\n");
+        s.append("Path: " + path);
+        return s.toString();
+    }
 
     @Override
     public int describeContents() {

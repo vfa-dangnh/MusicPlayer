@@ -29,14 +29,14 @@
 
         <!-- Playlist button -->
         <ImageButton
-            android:id="@+id/btnPlaylist"
+            android:id="@+id/btnInfo"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_gravity="center_vertical"
             android:adjustViewBounds="true"
             android:background="@null"
             android:scaleType="fitCenter"
-            android:src="@drawable/btn_playlist" />
+            android:src="@drawable/btn_info" />
     </LinearLayout>
 
     <!-- Song Thumbnail Image -->
@@ -44,15 +44,19 @@
         android:id="@+id/songThumbnail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_above="@+id/repeat_shuffle"
         android:layout_below="@id/player_header_bg"
         android:gravity="center"
-        android:paddingBottom="10dp"
-        android:paddingTop="10dp">
+        android:paddingBottom="5dp"
+        android:paddingTop="5dp">
 
         <ImageView
+            android:id="@+id/imgDisc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/adele" />
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_disc2" />
     </LinearLayout>
 
     <!-- Player Footer -->
@@ -171,6 +175,7 @@
 
     <!-- Repeat / Shuffle buttons -->
     <LinearLayout
+        android:id="@+id/repeat_shuffle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@id/timerDisplay"

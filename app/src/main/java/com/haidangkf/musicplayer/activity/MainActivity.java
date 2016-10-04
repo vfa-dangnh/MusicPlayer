@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -22,6 +23,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.haidangkf.musicplayer.R;
 import com.haidangkf.musicplayer.fragment.AlbumFragment;
 import com.haidangkf.musicplayer.fragment.ArtistFragment;
+import com.haidangkf.musicplayer.fragment.FolderFragment;
 import com.haidangkf.musicplayer.fragment.SongFragment;
 import com.haidangkf.musicplayer.service.MyService;
 import com.haidangkf.musicplayer.utils.CircleTransform;
@@ -33,6 +35,9 @@ public class MainActivity extends BaseActivity
     View navHeader;
     ImageView imgProfile;
     FragmentManager fm;
+
+    private static final int DURATION = 2000; // time passed between two back presses
+    private long lastPressed;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,14 +74,21 @@ public class MainActivity extends BaseActivity
 
     @Override
     public void onBackPressed() {
-        Log.d(Common.TAG, "count = " + fm.getBackStackEntryCount());
+        Log.d(Common.TAG, "fragment in back stack = " + fm.getBackStackEntryCount());
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else if (fm.getBackStackEntryCount() == 1) {
-            super.onBackPressed();
-            super.onBackPressed();
+            if (lastPressed + DURATION > System.currentTimeMillis()) {
+                Intent intent = new Intent(Intent.ACTION_MAIN);
+                intent.addCategory(Intent.CATEGORY_HOME);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                return;
+            }
+            Toast.makeText(getBaseContext(), "Press back again to exit", Toast.LENGTH_SHORT).show();
+            lastPressed = System.currentTimeMillis();
         } else {
             super.onBackPressed();
         }
@@ -90,7 +102,7 @@ public class MainActivity extends BaseActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -102,20 +114,35 @@ public class MainActivity extends BaseActivity
         int id = item.getItemId();
 
         if (id == R.id.action_song) {
-            loadFragment(SongFragment.class.getName(), false);
+            Fragment fragment = getVisibleFragment();
+            if (!(fragment instanceof SongFragment)) {
+                loadFragment(SongFragment.class.getName(), false);
+            }
             return true;
         }
 
         if (id == R.id.action_album) {
-            loadFragment(AlbumFragment.class.getName(), false);
+            Fragment fragment = getVisibleFragment();
+            if (!(fragment instanceof AlbumFragment)) {
+                loadFragment(AlbumFragment.class.getName(), false);
+            }
+            return true;
         }
 
         if (id == R.id.action_artist) {
-            loadFragment(ArtistFragment.class.getName(), false);
+            Fragment fragment = getVisibleFragment();
+            if (!(fragment instanceof ArtistFragment)) {
+                loadFragment(ArtistFragment.class.getName(), false);
+            }
+            return true;
         }
 
         if (id == R.id.action_folder) {
-            Toast.makeText(getApplicationContext(), "get folder", Toast.LENGTH_SHORT).show();
+            Fragment fragment = getVisibleFragment();
+            if (!(fragment instanceof FolderFragment)) {
+                loadFragment(FolderFragment.class.getName(), false);
+            }
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
