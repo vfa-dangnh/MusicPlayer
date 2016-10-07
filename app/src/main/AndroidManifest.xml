@@ -24,10 +24,24 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".activity.PlayerActivity"
+            android:screenOrientation="portrait"/>
+
         <service
             android:name=".service.MyService"
             android:enabled="true"
             android:exported="true"></service>
+
+        <receiver android:name=".receiver.NotificationBroadcast" >
+            <intent-filter>
+                <action android:name="notify.delete" />
+                <action android:name="notify.pause" />
+                <action android:name="notify.next" />
+                <action android:name="notify.play" />
+                <action android:name="notify.previous" />
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

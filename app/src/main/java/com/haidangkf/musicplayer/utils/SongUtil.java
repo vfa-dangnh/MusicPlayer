@@ -1,13 +1,19 @@
 package com.haidangkf.musicplayer.utils;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 
+import com.haidangkf.musicplayer.R;
 import com.haidangkf.musicplayer.dto.Song;
 
+import java.io.FileDescriptor;
 import java.util.ArrayList;
 
 /**
@@ -23,12 +29,12 @@ public class SongUtil {
     String artist = MediaStore.Audio.Media.ARTIST;
     String duration = MediaStore.Audio.Media.DURATION;
     String album = MediaStore.Audio.Media.ALBUM;
+    String albumId = MediaStore.Audio.Media.ALBUM_ID;
     String composer = MediaStore.Audio.Media.COMPOSER;
     String year = MediaStore.Audio.Media.YEAR;
     String path = MediaStore.Audio.Media.DATA;
     Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
 
-    private static final String TAG = "my_log";
     Context context;
 
     // constructor
@@ -36,11 +42,13 @@ public class SongUtil {
         this.context = context;
     }
 
+    //////////////////////////////// Song Util ////////////////////////////////
+
     public ArrayList<Song> getAllSongs() {
         ArrayList<Song> songArrayList = new ArrayList<>();
 
         ContentResolver cr = context.getContentResolver();
-        final String[] columns = {id, track, artist, title, album, duration, path, year, composer};
+        final String[] columns = {id, track, artist, title, album, albumId, duration, path, year, composer};
 //        Cursor cursor = cr.query(uri, columns, null, null, title + " ASC");
         Cursor cursor = cr.query(uri, null, isMusic + " != 0", null, title + " ASC");
 
@@ -55,11 +63,12 @@ public class SongUtil {
             String sTitle = cursor.getString(cursor.getColumnIndex(title));
             String sArtist = cursor.getString(cursor.getColumnIndex(artist));
             String sAlbum = cursor.getString(cursor.getColumnIndex(album));
+            String sAlbumId = cursor.getString(cursor.getColumnIndex(albumId));
             String sComposer = cursor.getString(cursor.getColumnIndex(composer));
             String sDuration = cursor.getString(cursor.getColumnIndex(duration));
 //            Log.d(TAG, "info: " + sTitle + " - " + sArtist + " - " + sAlbum + " - " + sComposer + " - " + sDuration);
 
-            Song song = new Song(sTitle, sArtist, sAlbum, sComposer, sDuration, sPath);
+            Song song = new Song(sTitle, sArtist, sAlbum, sAlbumId, sComposer, sDuration, sPath);
             songArrayList.add(song);
         }
 
@@ -151,6 +160,48 @@ public class SongUtil {
             duration += Long.parseLong(song.getDuration());
         }
         return duration;
+    }
+
+    /**
+     * Get the album image from albumId
+     *
+     * @param context
+     * @param album_id
+     * @param resize
+     * @return
+     */
+    public static Bitmap getAlbumart(Context context, Long album_id) {
+        Bitmap bm = null;
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        try {
+            final Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
+            Uri uri = ContentUris.withAppendedId(sArtworkUri, album_id);
+            ParcelFileDescriptor pfd = context.getContentResolver().openFileDescriptor(uri, "r");
+            if (pfd != null) {
+                FileDescriptor fd = pfd.getFileDescriptor();
+                bm = BitmapFactory.decodeFileDescriptor(fd, null, options);
+                pfd = null;
+                fd = null;
+            }
+        } catch (Error ee) {
+        } catch (Exception e) {
+        }
+        return bm;
+    }
+
+    /**
+     * @param context
+     * @return
+     */
+    public static Bitmap getDefaultAlbumArt(Context context) {
+        Bitmap bm = null;
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        try {
+            bm = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_disc, options);
+        } catch (Error ee) {
+        } catch (Exception e) {
+        }
+        return bm;
     }
 
     //////////////////////////////// Timer Util ////////////////////////////////

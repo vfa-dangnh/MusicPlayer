@@ -10,6 +10,7 @@ public class Song implements Parcelable {
     private String name;
     private String artist;
     private String album;
+    private String albumId;
     private String composer;
     private String duration;
     private String path;
@@ -18,10 +19,11 @@ public class Song implements Parcelable {
 
     }
 
-    public Song(String name, String artist, String album, String composer, String duration, String path) {
+    public Song(String name, String artist, String album, String albumId, String composer, String duration, String path) {
         this.setName(name);
         this.setArtist(artist);
         this.setAlbum(album);
+        this.setAlbumId(albumId);
         this.setComposer(composer);
         this.setDuration(duration);
         this.setPath(path);
@@ -49,6 +51,14 @@ public class Song implements Parcelable {
 
     public void setAlbum(String album) {
         this.album = album;
+    }
+
+    public String getAlbumId() {
+        return albumId;
+    }
+
+    public void setAlbumId(String albumId) {
+        this.albumId = albumId;
     }
 
     public String getComposer() {
@@ -81,6 +91,7 @@ public class Song implements Parcelable {
         s.append("Name: " + name + "\n");
         s.append("Artist: " + artist + "\n");
         s.append("Album: " + album + "\n");
+        s.append("Album ID: " + albumId + "\n");
         s.append("Composer: " + composer + "\n");
         s.append("Duration: " + SongFragment.songUtil.milliSecondsToTimer(Long.parseLong(duration)) + "\n");
         s.append("Path: " + path);
@@ -97,6 +108,7 @@ public class Song implements Parcelable {
         dest.writeString(this.name);
         dest.writeString(this.artist);
         dest.writeString(this.album);
+        dest.writeString(this.albumId);
         dest.writeString(this.composer);
         dest.writeString(this.duration);
         dest.writeString(this.path);
@@ -106,12 +118,13 @@ public class Song implements Parcelable {
         this.name = in.readString();
         this.artist = in.readString();
         this.album = in.readString();
+        this.albumId = in.readString();
         this.composer = in.readString();
         this.duration = in.readString();
         this.path = in.readString();
     }
 
-    public static final Parcelable.Creator<Song> CREATOR = new Parcelable.Creator<Song>() {
+    public static final Creator<Song> CREATOR = new Creator<Song>() {
         @Override
         public Song createFromParcel(Parcel source) {
             return new Song(source);

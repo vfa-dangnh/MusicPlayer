@@ -36,7 +36,7 @@ public class ArtistFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_item_display, container, false);
+        return inflater.inflate(R.layout.fragment_list_display, container, false);
     }
 
     @Override
@@ -45,7 +45,7 @@ public class ArtistFragment extends BaseFragment {
         setTitle("Artist List");
 
         songUtil = new SongUtil(context);
-        this.artistList = songUtil.getArtistList();
+        artistList = songUtil.getArtistList();
 
         if (artistList.size() == 0) {
             Toast.makeText(context, "No artist was found", Toast.LENGTH_LONG).show();
@@ -56,7 +56,7 @@ public class ArtistFragment extends BaseFragment {
             @Override
             public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
                 View v = LayoutInflater.from(parent.getContext()).inflate(
-                        R.layout.item_list, parent, false);
+                        R.layout.item_list_rv, parent, false);
                 return new MyViewHolder(v);
             }
 

@@ -3,7 +3,6 @@ package com.haidangkf.musicplayer.utils;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -22,17 +21,17 @@ import android.telephony.TelephonyManager;
 import android.text.Html;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import com.haidangkf.musicplayer.BuildConfig;
+import com.haidangkf.musicplayer.service.MyService;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
-import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -40,19 +39,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Common {
     public static final String TYPE_OS = "android";
     public static final int SIZE_IMAGE_MAX = 600;
 
-    //
+    public static final String TAG = "my_log";
     public static final int SPLASH_TIME_OUT = 1500;
     public static final int DELAY_SCROLL = 3000;
     public static final int VIEW_TYPE_ITEM = 0;
     public static final int VIEW_TYPE_LOADING = 1;
-    public static final String TAG = "my_log";
     public static final String KEY_ARTICLE_TYPE = "KEY_ARTICLE_TYPE";
     public static final String KEY_OBJECT_DTO = "KEY_OBJECT_DTO";
     public static final String KEY_ID_INTENT = "KEY_ID_INTENT";
@@ -169,7 +165,6 @@ public class Common {
 
     }
 
-
     public static void initSeverURL() {
         if (mServerApiURL == SEVER_API.DEV) {
             mCurrentServer = ApiConfig.SERVER_DEV_API;
@@ -182,85 +177,65 @@ public class Common {
         }
     }
 
-    public static String formatText(long number) {
-        DecimalFormat formatter = new DecimalFormat("#,###,###");
-        return formatter.format(number);
+    public static void startService(Context context, Class<?> serviceClass) {
+        Log.d(TAG, "start Service");
+        context.startService(new Intent(context, serviceClass));
     }
 
-    public static File getDecorationTempDir(Context context) {
-        return context.getExternalFilesDir("decoration-otw");
+    public static void stopService(Context context, Class<?> serviceClass) {
+        Log.d(TAG, "stop Service");
+        context.stopService(new Intent(context, serviceClass));
     }
 
-    public static File getFilterCacheDir(Context context) {
-        File dir = new File(context.getExternalCacheDir(), "filter");
-        dir.mkdirs();
-        return dir;
+    public static boolean isServiceRunning(Context context, Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    public static File getQuickSaveDir(Context context) {
-        return context.getExternalFilesDir("quick-save");
+    public static void exitApp(Context context) {
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
+        if (isServiceRunning(context, MyService.class)) {
+            stopService(context, MyService.class);
+        }
     }
 
-    public static File getQuickSaveFilterDir(Context context) {
-        File dir = new File(context.getExternalCacheDir(), "quick-save-filter");
-        dir.mkdirs();
-        return dir;
+    public static boolean currentVersionSupportBigNotification() {
+        int sdkVersion = android.os.Build.VERSION.SDK_INT;
+        if (sdkVersion >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean currentVersionSupportLockScreenControls() {
+        int sdkVersion = android.os.Build.VERSION.SDK_INT;
+        if (sdkVersion >= android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            return true;
+        }
+        return false;
     }
 
     public static boolean isEmailValid(String email) {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
-
     }
 
-
-    public static boolean isValidatePass(String pass) {
-        if (pass.length() < 6 || pass.length() > 12) return false;
-        Pattern pattern;
-        Matcher matcher;
-        String PASS_PATTERN = "[a-zA-Z0-9]*";
-        pattern = Pattern.compile(PASS_PATTERN);
-        matcher = pattern.matcher(pass);
-        return matcher.matches();
-
-    }
-
-    public static boolean isValidateUserName(String userName) {
-        byte[] aByte = new byte[0];
-        try {
-            aByte = userName.getBytes("UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+    public static boolean checkPasswordIsAlphabetNumeric(String text) {
+        String textLowerCase = text.toLowerCase();
+        char[] array = textLowerCase.toCharArray();
+        for (int i = 0; i < array.length; i++) {
+            if ((array[i] >= 'a' && array[i] <= 'z') || (array[i] >= '0' && array[i] <= '9'))
+                continue;
             return false;
         }
-        if (aByte.length <= 0 || aByte.length > 24) {
-            return false;
-        } else {
-            return true;
-        }
-//        Pattern pattern;
-//        Matcher matcher;
-//        String PASS_PATTERN = "[a-zA-Z0-9_-]*";
-//        pattern = Pattern.compile(PASS_PATTERN);
-//        matcher = pattern.matcher(userName);
-//        return matcher.matches();
-
-    }
-
-    public static boolean CheckPasswordIsAlphaNumeric(String text) {
-//        String lower = text.toLowerCase();
-//        for (int i = 0; i < text.length(); i++)
-//        {
-//            if ((lower [i] >= 'a' && lower [i] <= 'z') || (lower [i] >= '0' && lower [i] <= '9'))
-//                continue;
-//            return false;
-//        }
         return true;
-    }
-
-    public static ProgressDialog dialogProgress(Context context) {
-        ProgressDialog progressDialog = new ProgressDialog(context);
-        progressDialog.setCancelable(false);
-        return progressDialog;
     }
 
     public static String getRealPathFromURI(Context context, Uri contentUri) {
@@ -306,16 +281,6 @@ public class Common {
             view = new View(activity);
         }
         inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
-    }
-
-    public static boolean isNetworkConnected(Context context) {
-        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo ni = cm.getActiveNetworkInfo();
-        if (ni == null) {
-            // There are no active networks.
-            return false;
-        } else
-            return true;
     }
 
     public static void editButonDialog(AlertDialog alertDialog) {
@@ -502,18 +467,6 @@ public class Common {
         return alertDialog[0];
     }
 
-    public static void setBadge(Context context, int count) {
-        String launcherClassName = getLauncherClassName(context);
-        if (launcherClassName == null) {
-            return;
-        }
-        Intent intent = new Intent("android.intent.action.BADGE_COUNT_UPDATE");
-        intent.putExtra("badge_count", count);
-        intent.putExtra("badge_count_package_name", context.getPackageName());
-        intent.putExtra("badge_count_class_name", launcherClassName);
-        context.sendBroadcast(intent);
-    }
-
     public static String getLauncherClassName(Context context) {
 
         PackageManager pm = context.getPackageManager();
@@ -637,20 +590,6 @@ public class Common {
         return newBitmap;
     }
 
-    public static void saveBitmapToSdCard(Context context, String path, Bitmap bitmap) {
-        File file = new File(path);
-//        if (file.exists ()) file.delete ();
-        try {
-            FileOutputStream out = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
-            out.flush();
-            out.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public static void restartApp(Activity context) {
 //        Intent mStartActivity = new Intent(context, SplashActivity.class);
 //        int mPendingIntentId = 123456;
@@ -711,7 +650,7 @@ public class Common {
     }
 
     // check wifi, 3G connect
-    public static boolean checkInternetConnect(Context context) {
+    public static boolean checkInternetConnection(Context context) {
 
         boolean haveConnectedWifi = false;
         boolean haveConnectedMobile = false;
@@ -730,7 +669,7 @@ public class Common {
 
     //loi keet noi
     public static void handleErrorConnect(Activity context) {
-        if (Common.checkInternetConnect(context)) {
+        if (Common.checkInternetConnection(context)) {
             Common.dialogConfirmOk(context, "", "API error has occurred", null);
 //            Toast.makeText(context, "Lỗi kết nối tới máy chủ, vui lòng thử lại sau.", Toast.LENGTH_LONG).show();
 //            context.getSupportActionBar().setTitle("Lỗi tải tin...");
@@ -746,7 +685,7 @@ public class Common {
     public static void handleErrorApi(Activity context, String msg) {
         if (TextUtils.isEmpty(msg)) msg = "API error has occurred";
         Common.dialogConfirmOk(context, "", msg, null);
-//        if(Common.checkInternetConnect(context)){
+//        if(Common.checkInternetConnection(context)){
 //            Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
 //            context.getSupportActionBar().setTitle("Lỗi tải tin...");
 //        } else {
@@ -769,20 +708,6 @@ public class Common {
 //        Common.dialogConfirmOk(context, "", ErrorUtils.parseError(response).message(), null);
 //    }
 
-    public static String getFormatedDate(String strDate) {
-        String sourceFormate = "yyyy-MM-dd'T'HH:mm:ss.SSS";
-        String destinyFormate = "yyyy-MM-dd (日) HH:mm";
-        return getFormatedDate(strDate, sourceFormate, destinyFormate).replace(".", " 日 ");
-
-    }
-
-    public static String getFormatedDateCoupon(String strDate) {
-        String sourceFormate = "yyyy-MM-dd'T'HH:mm:ss.SSS";
-        String destinyFormate = "yyyy/MM/dd";
-        return getFormatedDate(strDate, sourceFormate, destinyFormate);
-
-    }
-
     public static String getFormatedDate(String strDate, String sourceFormate,
                                          String destinyFormate) {
         SimpleDateFormat df;
@@ -800,21 +725,5 @@ public class Common {
         df = new SimpleDateFormat(destinyFormate);
         return df.format(date);
 
-    }
-
-    public static Date getDateCoupon(String strDate) {
-        String sourceFormate = "yyyy-MM-dd'T'HH:mm:ss.SSS";
-        SimpleDateFormat df;
-        df = new SimpleDateFormat(sourceFormate);
-        df.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-        Date date = null;
-        try {
-            date = df.parse(strDate);
-
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return date;
     }
 }

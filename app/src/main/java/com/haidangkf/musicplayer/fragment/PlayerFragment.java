@@ -65,7 +65,7 @@ public class PlayerFragment extends BaseFragment implements
     private int currentSongIndex = -1;
     private boolean isShuffle = false;
     private boolean isRepeat = false;
-    Animation rotateAnim;
+    private Animation rotateAnim;
     private ArrayList<Song> songsList = new ArrayList<>();
 
     @Override
@@ -210,7 +210,6 @@ public class PlayerFragment extends BaseFragment implements
 
             @Override
             public void onClick(View arg0) {
-                // check if next song is there or not
                 if (currentSongIndex < (songsList.size() - 1)) {
                     playSong(currentSongIndex + 1);
                     currentSongIndex++;
@@ -413,6 +412,7 @@ public class PlayerFragment extends BaseFragment implements
     public void onDestroyView() {
         super.onDestroyView();
         mp.release();
+        mp = null;
         mHandler.removeCallbacks(mUpdateTimeTask);
     }
 

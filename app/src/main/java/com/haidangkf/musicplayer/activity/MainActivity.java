@@ -1,6 +1,5 @@
 package com.haidangkf.musicplayer.activity;
 
-import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,12 +14,18 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.haidangkf.musicplayer.R;
+import com.haidangkf.musicplayer.controls.PlayerConstants;
+import com.haidangkf.musicplayer.dto.Song;
 import com.haidangkf.musicplayer.fragment.AlbumFragment;
 import com.haidangkf.musicplayer.fragment.ArtistFragment;
 import com.haidangkf.musicplayer.fragment.FolderFragment;
@@ -39,37 +44,19 @@ public class MainActivity extends BaseActivity
     private static final int DURATION = 2000; // time passed between two back presses
     private long lastPressed;
 
+    public static View bottomBar;
+    public static ImageView imgDiscBottom;
+    public static TextView tvNameBottom;
+    public static ImageButton btnPlayBottom, btnPreviousBottom, btnNextBottom;
+    public static Animation rotateAnim;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-        navigationView.getMenu().getItem(0).setChecked(true);
-
-        // Navigation view header
-        navHeader = navigationView.getHeaderView(0);
-        imgProfile = (ImageView) navHeader.findViewById(R.id.img_profile);
-
-        // Loading profile image
-        Glide.with(context).load(R.drawable.profile_img)
-                .crossFade()
-                .thumbnail(0.5f)
-                .bitmapTransform(new CircleTransform(this))
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .into(imgProfile);
-
-        fm = context.getSupportFragmentManager();
-        loadFragment(SongFragment.class.getName(), true);
+        init();
+        loadFragment(SongFragment.class.getName());
     }
 
     @Override
@@ -79,18 +66,15 @@ public class MainActivity extends BaseActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        } else if (fm.getBackStackEntryCount() == 1) {
+        } else if (fm.getBackStackEntryCount() > 1) {
+            super.onBackPressed();
+        } else {
             if (lastPressed + DURATION > System.currentTimeMillis()) {
-                Intent intent = new Intent(Intent.ACTION_MAIN);
-                intent.addCategory(Intent.CATEGORY_HOME);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
+                Common.exitApp(context);
                 return;
             }
             Toast.makeText(getBaseContext(), "Press back again to exit", Toast.LENGTH_SHORT).show();
             lastPressed = System.currentTimeMillis();
-        } else {
-            super.onBackPressed();
         }
     }
 
@@ -116,7 +100,7 @@ public class MainActivity extends BaseActivity
         if (id == R.id.action_song) {
             Fragment fragment = getVisibleFragment();
             if (!(fragment instanceof SongFragment)) {
-                loadFragment(SongFragment.class.getName(), false);
+                loadFragmentClearBackStack(SongFragment.class.getName());
             }
             return true;
         }
@@ -124,7 +108,7 @@ public class MainActivity extends BaseActivity
         if (id == R.id.action_album) {
             Fragment fragment = getVisibleFragment();
             if (!(fragment instanceof AlbumFragment)) {
-                loadFragment(AlbumFragment.class.getName(), false);
+                loadFragmentClearBackStack(AlbumFragment.class.getName());
             }
             return true;
         }
@@ -132,7 +116,7 @@ public class MainActivity extends BaseActivity
         if (id == R.id.action_artist) {
             Fragment fragment = getVisibleFragment();
             if (!(fragment instanceof ArtistFragment)) {
-                loadFragment(ArtistFragment.class.getName(), false);
+                loadFragmentClearBackStack(ArtistFragment.class.getName());
             }
             return true;
         }
@@ -140,7 +124,7 @@ public class MainActivity extends BaseActivity
         if (id == R.id.action_folder) {
             Fragment fragment = getVisibleFragment();
             if (!(fragment instanceof FolderFragment)) {
-                loadFragment(FolderFragment.class.getName(), false);
+                loadFragmentClearBackStack(FolderFragment.class.getName());
             }
             return true;
         }
@@ -155,8 +139,11 @@ public class MainActivity extends BaseActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_online) {
+            // play music online
         } else if (id == R.id.nav_local) {
-            loadFragment(SongFragment.class.getName(), true);
+            loadFragmentClearBackStack(SongFragment.class.getName());
+        } else if (id == R.id.nav_exit) {
+            Common.exitApp(context);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -164,34 +151,78 @@ public class MainActivity extends BaseActivity
         return true;
     }
 
-    // ------------------------------------------------------------
+    // ----------------------------------------------------------------------------
 
-    public void loadFragment(String className, boolean clearAllBackStack) {
-        if (clearAllBackStack) {
-            fm.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-        }
+    public void loadFragment(String className) {
         startFragment(className, null, true);
     }
 
-    // ------------------------------------------------------------
-
-    public static void startService(Context context) {
-        Log.d(Common.TAG, "start Service");
-        context.startService(new Intent(context, MyService.class));
+    public void loadFragmentClearBackStack(String className) {
+        // clear all back stack
+        fm.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        startFragment(className, null, true);
     }
 
-    public static void stopService(Context context) {
-        Log.d(Common.TAG, "stop Service");
-        context.stopService(new Intent(context, MyService.class));
+    public void init() {
+        bottomBar = findViewById(R.id.bottomBar);
+        imgDiscBottom = (ImageView) bottomBar.findViewById(R.id.imgDisc);
+        tvNameBottom = (TextView) bottomBar.findViewById(R.id.tvSongName);
+        btnNextBottom = (ImageButton) bottomBar.findViewById(R.id.btnNext);
+        btnPlayBottom = (ImageButton) bottomBar.findViewById(R.id.btnPlay);
+        btnPreviousBottom = (ImageButton) bottomBar.findViewById(R.id.btnPrevious);
+        rotateAnim = AnimationUtils.loadAnimation(context, R.anim.rotate);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        fm = context.getSupportFragmentManager();
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        navigationView.getMenu().getItem(0).setChecked(true);
+
+        // Navigation view header
+        navHeader = navigationView.getHeaderView(0);
+        imgProfile = (ImageView) navHeader.findViewById(R.id.img_profile);
+
+        // Loading profile image
+        Glide.with(context).load(R.drawable.profile_img)
+                .crossFade()
+                .thumbnail(0.5f)
+                .bitmapTransform(new CircleTransform(this))
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .into(imgProfile);
+
+        checkToShowPlayerBottomBar(context);
     }
 
-    private boolean isMyServiceRunning(Class<?> serviceClass) {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(service.service.getClassName())) {
-                return true;
+    public static void updateUIBottomBar(Context context) {
+        if (Common.isServiceRunning(context, MyService.class)) {
+            Song song = PlayerConstants.SONGS_LIST.get(PlayerConstants.SONG_INDEX);
+            tvNameBottom.setText(song.getName());
+            if (PlayerConstants.SONG_PAUSED) {
+                imgDiscBottom.clearAnimation();
+                btnPlayBottom.setImageResource(R.drawable.btn_play);
+            } else {
+                imgDiscBottom.startAnimation(rotateAnim);
+                btnPlayBottom.setImageResource(R.drawable.btn_pause);
             }
         }
-        return false;
     }
+
+    public static boolean checkToShowPlayerBottomBar(Context context) {
+        if (Common.isServiceRunning(context, MyService.class)) {
+            bottomBar.setVisibility(View.VISIBLE);
+            return true;
+        } else {
+            bottomBar.setVisibility(View.GONE); // hide player bottom bar
+            return false;
+        }
+    }
+
 }

@@ -10,6 +10,10 @@
             android:id="@+id/nav_online"
             android:icon="@drawable/ic_home_black_24dp"
             android:title="Online Music" />
+        <item
+            android:id="@+id/nav_exit"
+            android:icon="@drawable/ic_home_black_24dp"
+            android:title="Exit App" />
     </group>
 
 </menu>

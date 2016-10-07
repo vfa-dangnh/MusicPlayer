@@ -8,7 +8,7 @@ import android.text.TextUtils;
 import java.util.HashSet;
 import java.util.Set;
 
-public final class PreferenceUtil {
+public final class SharedPreferencesUtil {
 
     ////////////////////////////////////////////////////////////////////////////
     // Constant
@@ -32,7 +32,7 @@ public final class PreferenceUtil {
     /**
      * private constructor
      */
-    private PreferenceUtil() {
+    private SharedPreferencesUtil() {
 
     }
 

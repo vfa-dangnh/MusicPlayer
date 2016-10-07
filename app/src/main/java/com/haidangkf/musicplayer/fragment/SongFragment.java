@@ -1,6 +1,7 @@
 package com.haidangkf.musicplayer.fragment;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -16,7 +17,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.haidangkf.musicplayer.R;
+import com.haidangkf.musicplayer.activity.MainActivity;
+import com.haidangkf.musicplayer.activity.PlayerActivity;
+import com.haidangkf.musicplayer.controls.Controls;
+import com.haidangkf.musicplayer.controls.PlayerConstants;
 import com.haidangkf.musicplayer.dto.Song;
+import com.haidangkf.musicplayer.service.MyService;
 import com.haidangkf.musicplayer.utils.Common;
 import com.haidangkf.musicplayer.utils.DividerItemDecoration;
 import com.haidangkf.musicplayer.utils.SongUtil;
@@ -30,15 +36,50 @@ public class SongFragment extends BaseFragment {
 
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
-
-    ArrayList<Song> songList = new ArrayList<>();
     RecyclerView.Adapter<MyViewHolder> mAdapter;
     public static SongUtil songUtil;
+    public static ArrayList<Song> songList = new ArrayList<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_item_display, container, false);
+        return inflater.inflate(R.layout.fragment_list_display, container, false);
+    }
+
+    public void init() {
+        songUtil = new SongUtil(context);
+        songList = songUtil.getAllSongs(); // default get all songs
+        setClickEventsBottomBar();
+    }
+
+    public void setClickEventsBottomBar() {
+        MainActivity.btnPlayBottom.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!PlayerConstants.SONG_PAUSED) {
+                    Controls.pauseControl(context);
+                } else {
+                    Controls.playControl(context);
+                }
+                MainActivity.updateUIBottomBar(context);
+            }
+        });
+
+        MainActivity.btnNextBottom.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Controls.nextControl(context);
+                MainActivity.updateUIBottomBar(context);
+            }
+        });
+
+        MainActivity.btnPreviousBottom.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Controls.previousControl(context);
+                MainActivity.updateUIBottomBar(context);
+            }
+        });
     }
 
     @Override
@@ -46,8 +87,7 @@ public class SongFragment extends BaseFragment {
         super.onViewCreated(view, savedInstanceState);
         setTitle("Song List");
 
-        songUtil = new SongUtil(context);
-        songList = songUtil.getAllSongs(); // default get all songs
+        init(); // very important
 
         Bundle bundle = this.getArguments();
         if (bundle != null) {
@@ -70,7 +110,7 @@ public class SongFragment extends BaseFragment {
             @Override
             public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
                 View v = LayoutInflater.from(parent.getContext()).inflate(
-                        R.layout.item_list, parent, false);
+                        R.layout.item_list_rv, parent, false);
                 return new MyViewHolder(v);
             }
 
@@ -101,10 +141,21 @@ public class SongFragment extends BaseFragment {
                     public boolean onMenuItemClick(MenuItem item) {
                         switch (item.getItemId()) {
                             case R.id.action_play:
-                                Bundle bundle = new Bundle();
-                                bundle.putParcelableArrayList("songList", songList);
-                                bundle.putInt("songIndex", position);
-                                startFragment(PlayerFragment.class.getName(), bundle, true);
+//                                Bundle bundle = new Bundle();
+//                                bundle.putParcelableArrayList("songList", songList);
+//                                bundle.putInt("songIndex", position);
+//                                startFragment(PlayerFragment.class.getName(), bundle, true);
+
+
+
+                                PlayerConstants.SONGS_LIST = songList;
+                                PlayerConstants.SONG_INDEX = position;
+                                PlayerConstants.SONG_PAUSED = false;
+
+
+                                Intent i = new Intent(context, PlayerActivity.class);
+                                startActivity(i);
+
                                 break;
                             case R.id.action_detail:
                                 String title = songList.get(position).getName();
@@ -157,14 +208,20 @@ public class SongFragment extends BaseFragment {
             v.setOnClickListener(this);
         }
 
+        // when click on list item recyclerView
         @Override
         public void onClick(View v) {
-            Bundle bundle = new Bundle();
-            bundle.putParcelableArrayList("songList", songList);
-            bundle.putInt("songIndex", getAdapterPosition());
-            startFragment(PlayerFragment.class.getName(), bundle, true);
+            PlayerConstants.SONGS_LIST = songList;
+            PlayerConstants.SONG_INDEX = getAdapterPosition();
+            PlayerConstants.SONG_PAUSED = false;
+            if (!Common.isServiceRunning(context, MyService.class)) {
+                Common.startService(context, MyService.class);
+            } else {
+                // service is running, handle action change song
+                PlayerConstants.SONG_CHANGE_HANDLER.sendMessage(PlayerConstants.SONG_CHANGE_HANDLER.obtainMessage());
+            }
+            MainActivity.updateUIBottomBar(context);
         }
-
     }
 
 }

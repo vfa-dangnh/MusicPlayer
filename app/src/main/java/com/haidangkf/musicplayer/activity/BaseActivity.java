@@ -68,7 +68,7 @@ public abstract class BaseActivity extends AppCompatActivity {
 
             BaseFragment fragment = (BaseFragment) Fragment.instantiate(this, className, bundle);
 
-            fragmentTransaction.replace(R.id.frameView, fragment, className);
+            fragmentTransaction.replace(R.id.contentView, fragment, className);
             if (addToBackStack) {
                 fragmentTransaction.addToBackStack(className);
             }
