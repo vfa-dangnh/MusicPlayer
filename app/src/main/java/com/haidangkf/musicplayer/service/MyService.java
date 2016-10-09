@@ -23,6 +23,7 @@ import android.widget.RemoteViews;
 
 import com.haidangkf.musicplayer.R;
 import com.haidangkf.musicplayer.activity.MainActivity;
+import com.haidangkf.musicplayer.activity.PlayerActivity;
 import com.haidangkf.musicplayer.controls.Controls;
 import com.haidangkf.musicplayer.controls.PlayerConstants;
 import com.haidangkf.musicplayer.dto.Song;
@@ -31,6 +32,7 @@ import com.haidangkf.musicplayer.utils.Common;
 import com.haidangkf.musicplayer.utils.SongUtil;
 
 import java.io.IOException;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -73,7 +75,7 @@ public class MyService extends Service implements AudioManager.OnAudioFocusChang
         mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                Controls.nextControl(getApplicationContext());
+                Controls.completionSongControl(getApplicationContext());
             }
         });
     }
@@ -85,10 +87,10 @@ public class MyService extends Service implements AudioManager.OnAudioFocusChang
         Log.d(Common.TAG, "onStartCommand Service");
 
         try {
-            if (PlayerConstants.SONGS_LIST.size() <= 0) {
-                PlayerConstants.SONGS_LIST = songUtil.getAllSongs();
+            if (PlayerConstants.SONG_LIST.size() <= 0) {
+                PlayerConstants.SONG_LIST = songUtil.getAllSongs();
             }
-            Song data = PlayerConstants.SONGS_LIST.get(PlayerConstants.SONG_INDEX);
+            Song data = PlayerConstants.SONG_LIST.get(PlayerConstants.SONG_INDEX);
             if (currentVersionSupportLockScreenControls) {
                 RegisterRemoteClient();
             }
@@ -100,13 +102,14 @@ public class MyService extends Service implements AudioManager.OnAudioFocusChang
                 @Override
                 public boolean handleMessage(Message msg) {
                     String message = (String) msg.obj;
-                    Song data = PlayerConstants.SONGS_LIST.get(PlayerConstants.SONG_INDEX);
+                    Song data = PlayerConstants.SONG_LIST.get(PlayerConstants.SONG_INDEX);
                     String songPath = data.getPath();
                     newNotification();
+                    // update UI
                     try {
                         playSong(songPath, data);
                         MainActivity.updateUIBottomBar(context);
-//                        AudioPlayerActivity.changeUI();
+                        PlayerActivity.updateUIPlayer(context);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -138,7 +141,7 @@ public class MyService extends Service implements AudioManager.OnAudioFocusChang
                     // update UI
                     try {
                         MainActivity.updateUIBottomBar(context);
-//                        AudioPlayerActivity.changeButton();
+                        PlayerActivity.updateUIPlayer(context);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -187,8 +190,8 @@ public class MyService extends Service implements AudioManager.OnAudioFocusChang
      */
     @SuppressLint("NewApi")
     private void newNotification() {
-        String songName = PlayerConstants.SONGS_LIST.get(PlayerConstants.SONG_INDEX).getName();
-        String albumName = PlayerConstants.SONGS_LIST.get(PlayerConstants.SONG_INDEX).getAlbum();
+        String songName = PlayerConstants.SONG_LIST.get(PlayerConstants.SONG_INDEX).getName();
+        String albumName = PlayerConstants.SONG_LIST.get(PlayerConstants.SONG_INDEX).getAlbum();
         RemoteViews simpleContentView = new RemoteViews(getApplicationContext().getPackageName(), R.layout.notification_custom);
         RemoteViews expandedView = new RemoteViews(getApplicationContext().getPackageName(), R.layout.notification_big);
 
@@ -205,7 +208,7 @@ public class MyService extends Service implements AudioManager.OnAudioFocusChang
         }
 
         try {
-            String albumId = PlayerConstants.SONGS_LIST.get(PlayerConstants.SONG_INDEX).getAlbumId();
+            String albumId = PlayerConstants.SONG_LIST.get(PlayerConstants.SONG_INDEX).getAlbumId();
             Bitmap albumArt = songUtil.getAlbumart(getApplicationContext(), Long.parseLong(albumId));
             if (albumArt != null) {
                 notification.contentView.setImageViewBitmap(R.id.imageViewAlbumArt, albumArt);

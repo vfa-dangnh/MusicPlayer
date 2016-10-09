@@ -50,10 +50,10 @@ public class PlayerFragment extends BaseFragment implements
     SeekBar songProgressBar;
     @BindView(R.id.songTitle)
     TextView songTitleLabel;
-    @BindView(R.id.songCurrentDurationLabel)
-    TextView songCurrentDurationLabel;
-    @BindView(R.id.songTotalDurationLabel)
-    TextView songTotalDurationLabel;
+    @BindView(R.id.songCurrentPosition)
+    TextView songCurrentPosition;
+    @BindView(R.id.songTotalDuration)
+    TextView songTotalDuration;
     @BindView(R.id.imgDisc)
     ImageView imgDisc;
 
@@ -96,7 +96,7 @@ public class PlayerFragment extends BaseFragment implements
                 int totalDuration = mp.getDuration();
                 int currentDuration = songUtil.progressToTimer(progress, totalDuration);
                 // Displaying Current Playing time
-                songCurrentDurationLabel.setText("" + songUtil.milliSecondsToTimer(currentDuration));
+                songCurrentPosition.setText("" + songUtil.milliSecondsToTimer(currentDuration));
             }
 
             @Override
@@ -357,9 +357,9 @@ public class PlayerFragment extends BaseFragment implements
             long currentDuration = mp.getCurrentPosition();
 
             // Displaying Total Duration time
-            songTotalDurationLabel.setText("" + songUtil.milliSecondsToTimer(totalDuration));
+            songTotalDuration.setText("" + songUtil.milliSecondsToTimer(totalDuration));
             // Displaying time completed playing
-            songCurrentDurationLabel.setText("" + songUtil.milliSecondsToTimer(currentDuration));
+            songCurrentPosition.setText("" + songUtil.milliSecondsToTimer(currentDuration));
 
             // Updating progress bar
             int progress = songUtil.getProgressPercentage(currentDuration, totalDuration);

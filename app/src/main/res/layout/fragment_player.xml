@@ -153,7 +153,7 @@
         android:layout_marginRight="20dp">
         <!-- Current Duration Label -->
         <TextView
-            android:id="@+id/songCurrentDurationLabel"
+            android:id="@+id/songCurrentPosition"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -163,7 +163,7 @@
             android:textStyle="bold" />
         <!-- Total Duration Label -->
         <TextView
-            android:id="@+id/songTotalDurationLabel"
+            android:id="@+id/songTotalDuration"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"

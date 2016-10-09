@@ -1,8 +1,12 @@
 package com.haidangkf.musicplayer.activity;
 
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -10,6 +14,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.haidangkf.musicplayer.R;
 import com.haidangkf.musicplayer.controls.Controls;
@@ -19,14 +24,10 @@ import com.haidangkf.musicplayer.service.MyService;
 import com.haidangkf.musicplayer.utils.Common;
 import com.haidangkf.musicplayer.utils.SongUtil;
 
-import java.util.ArrayList;
-
 import butterknife.BindView;
 
 public class PlayerActivity extends BaseActivity {
 
-    @BindView(R.id.btnPlay)
-    ImageButton btnPlay;
     @BindView(R.id.btnForward)
     ImageButton btnForward;
     @BindView(R.id.btnBackward)
@@ -35,49 +36,62 @@ public class PlayerActivity extends BaseActivity {
     ImageButton btnNext;
     @BindView(R.id.btnPrevious)
     ImageButton btnPrevious;
-    @BindView(R.id.btnInfo)
-    ImageButton btnInfo;
     @BindView(R.id.btnRepeat)
     ImageButton btnRepeat;
     @BindView(R.id.btnShuffle)
     ImageButton btnShuffle;
     @BindView(R.id.songProgressBar)
     SeekBar songProgressBar;
-    @BindView(R.id.songTitle)
-    TextView songTitleLabel;
-    @BindView(R.id.songCurrentDurationLabel)
-    TextView songCurrentDurationLabel;
-    @BindView(R.id.songTotalDurationLabel)
-    TextView songTotalDurationLabel;
-    @BindView(R.id.imgDisc)
-    ImageView imgDisc;
+    @BindView(R.id.songCurrentPosition)
+    TextView songCurrentPosition;
+    @BindView(R.id.songTotalDuration)
+    TextView songTotalDuration;
+
+    public static ImageButton btnInfo;
+    public static ImageButton btnPlay;
+    public static ImageView imgDisc;
+    public static TextView songTitle;
+    public static Animation rotateAnim;
 
     private Handler mHandler = new Handler(); // to update UI timer, progress bar...
     private SongUtil songUtil;
     private int seekForwardTime = 5000; // milliseconds
     private int seekBackwardTime = 5000; // milliseconds
-    private int currentSongIndex = -1;
-    private boolean isShuffle = false;
-    private boolean isRepeat = false;
-    private Animation rotateAnim;
-    private ArrayList<Song> songsList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fragment_player);
-
+        setTitle("Playing Media");
+        Log.d(Common.TAG, "onCreate PlayerActivity");
 
         init();
 
-        if (!Common.isServiceRunning(context, MyService.class)) {
-            Common.startService(context, MyService.class);
-        } else {
-            // service is running, handle action change song
-            PlayerConstants.SONG_CHANGE_HANDLER.sendMessage(PlayerConstants.SONG_CHANGE_HANDLER.obtainMessage());
-        }
-        MainActivity.updateUIBottomBar(context);
+        Intent intent = getIntent();
+        if (intent.hasExtra("from")) {
+            int type = intent.getIntExtra("from", 0);
+            if (type == 1) { // from click bottom bar
 
+            } else { // from click menu Play
+                if (!Common.isServiceRunning(context, MyService.class)) {
+                    Common.startService(context, MyService.class);
+                } else {
+                    // service is running, handle action change song
+                    PlayerConstants.SONG_CHANGE_HANDLER.sendMessage(PlayerConstants.SONG_CHANGE_HANDLER.obtainMessage());
+                }
+            }
+        } else {
+            songProgressBar.setEnabled(false);
+            btnPlay.setEnabled(false);
+            btnForward.setEnabled(false);
+            btnBackward.setEnabled(false);
+            btnNext.setEnabled(false);
+            btnPrevious.setEnabled(false);
+            return;
+        }
+
+        MainActivity.updateUIBottomBar(context);
+        this.updateUIPlayer(context);
 
         // SeekBar change listener
         songProgressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -87,7 +101,7 @@ public class PlayerActivity extends BaseActivity {
                 int totalDuration = MyService.mp.getDuration();
                 int currentDuration = songUtil.progressToTimer(progress, totalDuration);
                 // Displaying Current Playing time
-                songCurrentDurationLabel.setText("" + songUtil.milliSecondsToTimer(currentDuration));
+                songCurrentPosition.setText("" + songUtil.milliSecondsToTimer(currentDuration));
             }
 
             @Override
@@ -111,20 +125,25 @@ public class PlayerActivity extends BaseActivity {
     }
 
     private void init() {
+        btnPlay = (ImageButton) findViewById(R.id.btnPlay);
+        btnInfo = (ImageButton) findViewById(R.id.btnInfo);
+        imgDisc = (ImageView) findViewById(R.id.imgDisc);
+        songTitle = (TextView) findViewById(R.id.songTitle);
+
         setClickEventsButtons();
         songUtil = new SongUtil(context);
         rotateAnim = AnimationUtils.loadAnimation(context, R.anim.rotate);
-        PlayerConstants.PROGRESSBAR_HANDLER = new Handler(){
+        PlayerConstants.PROGRESSBAR_HANDLER = new Handler() {
             @Override
-            public void handleMessage(Message msg){
-                Integer i[] = (Integer[])msg.obj;
-                songCurrentDurationLabel.setText(songUtil.milliSecondsToTimer(i[0]));
-                songTotalDurationLabel.setText(songUtil.milliSecondsToTimer(i[1]));
+            public void handleMessage(Message msg) {
+                Integer i[] = (Integer[]) msg.obj;
+                songCurrentPosition.setText(songUtil.milliSecondsToTimer(i[0]));
+                songTotalDuration.setText(songUtil.milliSecondsToTimer(i[1]));
             }
         };
 
-        songsList = PlayerConstants.SONGS_LIST;
-        currentSongIndex = PlayerConstants.SONG_INDEX;
+        // set Progress bar values
+        songProgressBar.setMax(100);
     }
 
     private void setClickEventsButtons() {
@@ -155,6 +174,122 @@ public class PlayerActivity extends BaseActivity {
                 MainActivity.updateUIBottomBar(context);
             }
         });
+
+
+        /**
+         * Forward button click event
+         * Forwards song specified seconds
+         * */
+        btnForward.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                // get current song position
+                int currentPosition = MyService.mp.getCurrentPosition();
+                // check if seekForward time is lesser than song duration
+                if (currentPosition + seekForwardTime < MyService.mp.getDuration()) {
+                    // forward song
+                    MyService.mp.seekTo(currentPosition + seekForwardTime);
+                } else {
+                    // forward to end position
+                    MyService.mp.seekTo(MyService.mp.getDuration());
+                }
+            }
+        });
+
+        /**
+         * Backward button click event
+         * Backward song to specified seconds
+         * */
+        btnBackward.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                // get current song position
+                int currentPosition = MyService.mp.getCurrentPosition();
+                // check if seekBackward time is greater than 0 sec
+                if (currentPosition - seekBackwardTime > 0) {
+                    // forward song
+                    MyService.mp.seekTo(currentPosition - seekBackwardTime);
+                } else {
+                    // backward to starting position
+                    MyService.mp.seekTo(0);
+                }
+
+            }
+        });
+
+        btnInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                String title = PlayerConstants.SONG_LIST.get(PlayerConstants.SONG_INDEX).getName();
+                String message = PlayerConstants.SONG_LIST.get(PlayerConstants.SONG_INDEX).toString();
+                Common.dialogConfirmOk(context, title, message, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+            }
+        });
+
+
+        /**
+         * Button Click event for Repeat button
+         * Enables repeat flag to true
+         * */
+        btnRepeat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                if (PlayerConstants.IS_REPEAT) {
+                    PlayerConstants.IS_REPEAT = false;
+                    Toast.makeText(context, "Repeat is OFF", Toast.LENGTH_SHORT).show();
+                    btnRepeat.setImageResource(R.drawable.btn_repeat);
+                } else {
+                    PlayerConstants.IS_REPEAT = true;
+                    Toast.makeText(context, "Repeat is ON", Toast.LENGTH_SHORT).show();
+                    // make shuffle to false
+                    PlayerConstants.IS_SHUFFLE = false;
+                    btnRepeat.setImageResource(R.drawable.btn_repeat_focused);
+                    btnShuffle.setImageResource(R.drawable.btn_shuffle);
+                }
+            }
+        });
+
+        /**
+         * Button Click event for Shuffle button
+         * Enables shuffle flag to true
+         * */
+        btnShuffle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                if (PlayerConstants.IS_SHUFFLE) {
+                    PlayerConstants.IS_SHUFFLE = false;
+                    Toast.makeText(context, "Shuffle is OFF", Toast.LENGTH_SHORT).show();
+                    btnShuffle.setImageResource(R.drawable.btn_shuffle);
+                } else {
+                    PlayerConstants.IS_SHUFFLE = true;
+                    Toast.makeText(context, "Shuffle is ON", Toast.LENGTH_SHORT).show();
+                    // make repeat to false
+                    PlayerConstants.IS_REPEAT = false;
+                    btnShuffle.setImageResource(R.drawable.btn_shuffle_focused);
+                    btnRepeat.setImageResource(R.drawable.btn_repeat);
+                }
+            }
+        });
+    }
+
+    public static void updateUIPlayer(Context context) {
+        if (Common.isServiceRunning(context, MyService.class)) {
+            Song song = PlayerConstants.SONG_LIST.get(PlayerConstants.SONG_INDEX);
+            songTitle.setText(song.getName());
+            if (PlayerConstants.SONG_PAUSED) {
+                imgDisc.clearAnimation();
+                btnPlay.setImageResource(R.drawable.btn_play);
+            } else {
+                imgDisc.startAnimation(rotateAnim);
+                btnPlay.setImageResource(R.drawable.btn_pause);
+            }
+        }
+
     }
 
     /**
@@ -173,9 +308,9 @@ public class PlayerActivity extends BaseActivity {
             long currentDuration = MyService.mp.getCurrentPosition();
 
             // Displaying Total Duration time
-            songTotalDurationLabel.setText("" + songUtil.milliSecondsToTimer(totalDuration));
+            songTotalDuration.setText("" + songUtil.milliSecondsToTimer(totalDuration));
             // Displaying time completed playing
-            songCurrentDurationLabel.setText("" + songUtil.milliSecondsToTimer(currentDuration));
+            songCurrentPosition.setText("" + songUtil.milliSecondsToTimer(currentDuration));
 
             // Updating progress bar
             int progress = songUtil.getProgressPercentage(currentDuration, totalDuration);
@@ -185,5 +320,29 @@ public class PlayerActivity extends BaseActivity {
             mHandler.postDelayed(this, 100);
         }
     };
+
+    @Override
+    public void onResume() {
+        Log.d(Common.TAG, "onResume PlayerActivity");
+        super.onResume();
+        if (Common.isServiceRunning(context, MyService.class)) {
+            MainActivity.updateUIBottomBar(context);
+            updateUIPlayer(context);
+        } else {
+            songProgressBar.setEnabled(false);
+            btnPlay.setEnabled(false);
+            btnForward.setEnabled(false);
+            btnBackward.setEnabled(false);
+            btnNext.setEnabled(false);
+            btnPrevious.setEnabled(false);
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.d(Common.TAG, "onDestroy PlayerActivity");
+        super.onDestroy();
+        mHandler.removeCallbacks(mUpdateTimeTask);
+    }
 
 }

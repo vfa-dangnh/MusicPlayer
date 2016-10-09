@@ -91,8 +91,8 @@ public class Song implements Parcelable {
         s.append("Name: " + name + "\n");
         s.append("Artist: " + artist + "\n");
         s.append("Album: " + album + "\n");
-        s.append("Album ID: " + albumId + "\n");
-        s.append("Composer: " + composer + "\n");
+//        s.append("Album ID: " + albumId + "\n");
+//        s.append("Composer: " + composer + "\n");
         s.append("Duration: " + SongFragment.songUtil.milliSecondsToTimer(Long.parseLong(duration)) + "\n");
         s.append("Path: " + path);
         return s.toString();

@@ -141,21 +141,13 @@ public class SongFragment extends BaseFragment {
                     public boolean onMenuItemClick(MenuItem item) {
                         switch (item.getItemId()) {
                             case R.id.action_play:
-//                                Bundle bundle = new Bundle();
-//                                bundle.putParcelableArrayList("songList", songList);
-//                                bundle.putInt("songIndex", position);
-//                                startFragment(PlayerFragment.class.getName(), bundle, true);
-
-
-
-                                PlayerConstants.SONGS_LIST = songList;
+                                PlayerConstants.SONG_LIST = songList;
                                 PlayerConstants.SONG_INDEX = position;
                                 PlayerConstants.SONG_PAUSED = false;
 
-
                                 Intent i = new Intent(context, PlayerActivity.class);
+                                i.putExtra("from", 2); // when click on menu Play
                                 startActivity(i);
-
                                 break;
                             case R.id.action_detail:
                                 String title = songList.get(position).getName();
@@ -211,7 +203,7 @@ public class SongFragment extends BaseFragment {
         // when click on list item recyclerView
         @Override
         public void onClick(View v) {
-            PlayerConstants.SONGS_LIST = songList;
+            PlayerConstants.SONG_LIST = songList;
             PlayerConstants.SONG_INDEX = getAdapterPosition();
             PlayerConstants.SONG_PAUSED = false;
             if (!Common.isServiceRunning(context, MyService.class)) {

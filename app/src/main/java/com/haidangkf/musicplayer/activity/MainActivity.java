@@ -18,6 +18,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,6 +49,7 @@ public class MainActivity extends BaseActivity
     public static ImageView imgDiscBottom;
     public static TextView tvNameBottom;
     public static ImageButton btnPlayBottom, btnPreviousBottom, btnNextBottom;
+    public static LinearLayout btnShowPlayer;
     public static Animation rotateAnim;
 
     @Override
@@ -165,6 +167,7 @@ public class MainActivity extends BaseActivity
 
     public void init() {
         bottomBar = findViewById(R.id.bottomBar);
+        btnShowPlayer = (LinearLayout) bottomBar.findViewById(R.id.btnShowPlayer);
         imgDiscBottom = (ImageView) bottomBar.findViewById(R.id.imgDisc);
         tvNameBottom = (TextView) bottomBar.findViewById(R.id.tvSongName);
         btnNextBottom = (ImageButton) bottomBar.findViewById(R.id.btnNext);
@@ -198,12 +201,21 @@ public class MainActivity extends BaseActivity
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(imgProfile);
 
+        btnShowPlayer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(context, PlayerActivity.class);
+                i.putExtra("from", 1); // when click on player bottom bar
+                startActivity(i);
+            }
+        });
+
         checkToShowPlayerBottomBar(context);
     }
 
     public static void updateUIBottomBar(Context context) {
         if (Common.isServiceRunning(context, MyService.class)) {
-            Song song = PlayerConstants.SONGS_LIST.get(PlayerConstants.SONG_INDEX);
+            Song song = PlayerConstants.SONG_LIST.get(PlayerConstants.SONG_INDEX);
             tvNameBottom.setText(song.getName());
             if (PlayerConstants.SONG_PAUSED) {
                 imgDiscBottom.clearAnimation();
