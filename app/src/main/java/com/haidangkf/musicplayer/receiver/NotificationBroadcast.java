@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.util.Log;
 import android.view.KeyEvent;
 
+import com.haidangkf.musicplayer.activity.MainActivity;
+import com.haidangkf.musicplayer.activity.PlayerActivity;
 import com.haidangkf.musicplayer.controls.Controls;
 import com.haidangkf.musicplayer.controls.PlayerConstants;
 import com.haidangkf.musicplayer.service.MyService;
@@ -54,7 +56,15 @@ public class NotificationBroadcast extends BroadcastReceiver {
             } else if (intent.getAction().equals(MyService.NOTIFY_PREVIOUS)) {
                 Controls.previousControl(context);
             } else if (intent.getAction().equals(MyService.NOTIFY_DELETE)) {
-                Common.stopService(context,MyService.class);
+                Common.stopService(context, MyService.class);
+            } else if (intent.getAction().equals(MyService.NOTIFY_SHOW_APP)) {
+                Intent i = new Intent(context, MainActivity.class);
+                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(i);
+
+                Intent i2 = new Intent(context, PlayerActivity.class);
+                i2.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(i2);
             }
         }
     }

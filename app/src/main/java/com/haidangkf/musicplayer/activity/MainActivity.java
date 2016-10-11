@@ -201,12 +201,13 @@ public class MainActivity extends BaseActivity
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(imgProfile);
 
+        /**
+         * when click on player bottom bar
+         */
         btnShowPlayer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(context, PlayerActivity.class);
-                i.putExtra("from", 1); // when click on player bottom bar
-                startActivity(i);
+                startActivity(new Intent(context, PlayerActivity.class));
             }
         });
 

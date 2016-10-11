@@ -61,7 +61,6 @@ public class SongFragment extends BaseFragment {
                 } else {
                     Controls.playControl(context);
                 }
-                MainActivity.updateUIBottomBar(context);
             }
         });
 
@@ -69,7 +68,6 @@ public class SongFragment extends BaseFragment {
             @Override
             public void onClick(View v) {
                 Controls.nextControl(context);
-                MainActivity.updateUIBottomBar(context);
             }
         });
 
@@ -77,7 +75,6 @@ public class SongFragment extends BaseFragment {
             @Override
             public void onClick(View v) {
                 Controls.previousControl(context);
-                MainActivity.updateUIBottomBar(context);
             }
         });
     }

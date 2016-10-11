@@ -8,7 +8,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
@@ -32,7 +31,6 @@ import com.haidangkf.musicplayer.utils.Common;
 import com.haidangkf.musicplayer.utils.SongUtil;
 
 import java.io.IOException;
-import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -41,10 +39,11 @@ public class MyService extends Service implements AudioManager.OnAudioFocusChang
     public static MediaPlayer mp;
     int NOTIFICATION_ID = 1111;
     public static final String NOTIFY_PREVIOUS = "notify.previous";
-    public static final String NOTIFY_DELETE = "notify.delete";
+    public static final String NOTIFY_NEXT = "notify.next";
     public static final String NOTIFY_PAUSE = "notify.pause";
     public static final String NOTIFY_PLAY = "notify.play";
-    public static final String NOTIFY_NEXT = "notify.next";
+    public static final String NOTIFY_DELETE = "notify.delete";
+    public static final String NOTIFY_SHOW_APP = "notify.showApp";
 
     private ComponentName remoteComponentName;
     private RemoteControlClient remoteControlClient;
@@ -196,7 +195,7 @@ public class MyService extends Service implements AudioManager.OnAudioFocusChang
         RemoteViews expandedView = new RemoteViews(getApplicationContext().getPackageName(), R.layout.notification_big);
 
         Notification notification = new NotificationCompat.Builder(getApplicationContext())
-                .setSmallIcon(R.drawable.ic_music)
+                .setSmallIcon(R.drawable.ic_app_icon)
                 .setContentTitle(songName).build();
 
         setListeners(simpleContentView);
@@ -209,17 +208,13 @@ public class MyService extends Service implements AudioManager.OnAudioFocusChang
 
         try {
             String albumId = PlayerConstants.SONG_LIST.get(PlayerConstants.SONG_INDEX).getAlbumId();
-            Bitmap albumArt = songUtil.getAlbumart(getApplicationContext(), Long.parseLong(albumId));
-            if (albumArt != null) {
-                notification.contentView.setImageViewBitmap(R.id.imageViewAlbumArt, albumArt);
-                if (currentVersionSupportBigNotification) {
-                    notification.bigContentView.setImageViewBitmap(R.id.imageViewAlbumArt, albumArt);
-                }
-            } else {
-                notification.contentView.setImageViewResource(R.id.imageViewAlbumArt, R.drawable.ic_disc);
-                if (currentVersionSupportBigNotification) {
-                    notification.bigContentView.setImageViewResource(R.id.imageViewAlbumArt, R.drawable.ic_disc);
-                }
+            Bitmap albumArt = songUtil.getAlbumArt(getApplicationContext(), Long.parseLong(albumId));
+            if (albumArt == null) {
+                albumArt = songUtil.getDefaultAlbumArt(context);
+            }
+            notification.contentView.setImageViewBitmap(R.id.imageViewAlbumArt, albumArt);
+            if (currentVersionSupportBigNotification) {
+                notification.bigContentView.setImageViewBitmap(R.id.imageViewAlbumArt, albumArt);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -259,25 +254,29 @@ public class MyService extends Service implements AudioManager.OnAudioFocusChang
      */
     public void setListeners(RemoteViews view) {
         Intent previous = new Intent(NOTIFY_PREVIOUS);
-        Intent delete = new Intent(NOTIFY_DELETE);
-        Intent pause = new Intent(NOTIFY_PAUSE);
         Intent next = new Intent(NOTIFY_NEXT);
+        Intent pause = new Intent(NOTIFY_PAUSE);
         Intent play = new Intent(NOTIFY_PLAY);
+        Intent delete = new Intent(NOTIFY_DELETE);
+        Intent showApp = new Intent(NOTIFY_SHOW_APP);
 
         PendingIntent pPrevious = PendingIntent.getBroadcast(getApplicationContext(), 0, previous, PendingIntent.FLAG_UPDATE_CURRENT);
         view.setOnClickPendingIntent(R.id.btnPrevious, pPrevious);
 
-        PendingIntent pDelete = PendingIntent.getBroadcast(getApplicationContext(), 0, delete, PendingIntent.FLAG_UPDATE_CURRENT);
-        view.setOnClickPendingIntent(R.id.btnDelete, pDelete);
+        PendingIntent pNext = PendingIntent.getBroadcast(getApplicationContext(), 0, next, PendingIntent.FLAG_UPDATE_CURRENT);
+        view.setOnClickPendingIntent(R.id.btnNext, pNext);
 
         PendingIntent pPause = PendingIntent.getBroadcast(getApplicationContext(), 0, pause, PendingIntent.FLAG_UPDATE_CURRENT);
         view.setOnClickPendingIntent(R.id.btnPause, pPause);
 
-        PendingIntent pNext = PendingIntent.getBroadcast(getApplicationContext(), 0, next, PendingIntent.FLAG_UPDATE_CURRENT);
-        view.setOnClickPendingIntent(R.id.btnNext, pNext);
-
         PendingIntent pPlay = PendingIntent.getBroadcast(getApplicationContext(), 0, play, PendingIntent.FLAG_UPDATE_CURRENT);
         view.setOnClickPendingIntent(R.id.btnPlay, pPlay);
+
+        PendingIntent pDelete = PendingIntent.getBroadcast(getApplicationContext(), 0, delete, PendingIntent.FLAG_UPDATE_CURRENT);
+        view.setOnClickPendingIntent(R.id.btnDelete, pDelete);
+
+        PendingIntent pShowApp = PendingIntent.getBroadcast(getApplicationContext(), 0, showApp, PendingIntent.FLAG_UPDATE_CURRENT);
+        view.setOnClickPendingIntent(R.id.btnShowApp, pShowApp);
     }
 
     /**
@@ -336,9 +335,9 @@ public class MyService extends Service implements AudioManager.OnAudioFocusChang
         metadataEditor.putString(MediaMetadataRetriever.METADATA_KEY_ALBUM, data.getAlbum());
         metadataEditor.putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, data.getArtist());
         metadataEditor.putString(MediaMetadataRetriever.METADATA_KEY_TITLE, data.getName());
-        mDummyAlbumArt = songUtil.getAlbumart(getApplicationContext(), Long.parseLong(data.getAlbumId()));
+        mDummyAlbumArt = songUtil.getAlbumArt(getApplicationContext(), Long.parseLong(data.getAlbumId()));
         if (mDummyAlbumArt == null) {
-            mDummyAlbumArt = BitmapFactory.decodeResource(getResources(), R.drawable.ic_disc);
+            mDummyAlbumArt = songUtil.getDefaultAlbumArt(context);
         }
         metadataEditor.putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK, mDummyAlbumArt);
         metadataEditor.apply();
@@ -367,6 +366,8 @@ public class MyService extends Service implements AudioManager.OnAudioFocusChang
         if (MainActivity.bottomBar != null) {
             MainActivity.bottomBar.setVisibility(View.GONE);
         }
+        // send broadcast to finish Player Activity
+        sendBroadcast(new Intent("finishPlayerActivity"));
     }
 
 }

@@ -34,11 +34,12 @@
 
         <receiver android:name=".receiver.NotificationBroadcast" >
             <intent-filter>
-                <action android:name="notify.delete" />
-                <action android:name="notify.pause" />
-                <action android:name="notify.next" />
-                <action android:name="notify.play" />
                 <action android:name="notify.previous" />
+                <action android:name="notify.next" />
+                <action android:name="notify.pause" />
+                <action android:name="notify.play" />
+                <action android:name="notify.delete" />
+                <action android:name="notify.showApp" />
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </receiver>

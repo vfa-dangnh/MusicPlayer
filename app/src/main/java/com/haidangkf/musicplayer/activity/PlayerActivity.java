@@ -1,8 +1,10 @@
 package com.haidangkf.musicplayer.activity;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -68,26 +70,18 @@ public class PlayerActivity extends BaseActivity {
         init();
 
         Intent intent = getIntent();
-        if (intent.hasExtra("from")) {
-            int type = intent.getIntExtra("from", 0);
-            if (type == 1) { // from click bottom bar
-
-            } else { // from click menu Play
-                if (!Common.isServiceRunning(context, MyService.class)) {
-                    Common.startService(context, MyService.class);
-                } else {
-                    // service is running, handle action change song
-                    PlayerConstants.SONG_CHANGE_HANDLER.sendMessage(PlayerConstants.SONG_CHANGE_HANDLER.obtainMessage());
-                }
+        if (intent.hasExtra("from")) { // from click on menu Play
+            if (!Common.isServiceRunning(context, MyService.class)) {
+                Common.startService(context, MyService.class);
+            } else {
+                // service is running, handle action change song
+                PlayerConstants.SONG_CHANGE_HANDLER.sendMessage(PlayerConstants.SONG_CHANGE_HANDLER.obtainMessage());
             }
         } else {
-            songProgressBar.setEnabled(false);
-            btnPlay.setEnabled(false);
-            btnForward.setEnabled(false);
-            btnBackward.setEnabled(false);
-            btnNext.setEnabled(false);
-            btnPrevious.setEnabled(false);
-            return;
+            if (!Common.isServiceRunning(context, MyService.class)) {
+                disablePlayerScreen();
+                return;
+            }
         }
 
         MainActivity.updateUIBottomBar(context);
@@ -112,6 +106,7 @@ public class PlayerActivity extends BaseActivity {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
+                mHandler.removeCallbacks(mUpdateTimeTask);
                 int totalDuration = MyService.mp.getDuration();
                 int currentDuration = songUtil.progressToTimer(seekBar.getProgress(), totalDuration);
 
@@ -130,9 +125,9 @@ public class PlayerActivity extends BaseActivity {
         imgDisc = (ImageView) findViewById(R.id.imgDisc);
         songTitle = (TextView) findViewById(R.id.songTitle);
 
-        setClickEventsButtons();
         songUtil = new SongUtil(context);
         rotateAnim = AnimationUtils.loadAnimation(context, R.anim.rotate);
+        setClickEventsButtons();
         PlayerConstants.PROGRESSBAR_HANDLER = new Handler() {
             @Override
             public void handleMessage(Message msg) {
@@ -143,18 +138,48 @@ public class PlayerActivity extends BaseActivity {
         };
 
         // set Progress bar values
+        songProgressBar.setProgress(0);
         songProgressBar.setMax(100);
+
+        // register receiver
+        registerReceiver(finishPlayerActivity, new IntentFilter("finishPlayerActivity"));
     }
 
+    private void disablePlayerScreen() {
+        btnInfo.setEnabled(false);
+        btnPlay.setEnabled(false);
+        btnForward.setEnabled(false);
+        btnBackward.setEnabled(false);
+        btnNext.setEnabled(false);
+        btnPrevious.setEnabled(false);
+        songProgressBar.setEnabled(false);
+        imgDisc.clearAnimation();
+        songTitle.setText("");
+        songCurrentPosition.setText("");
+        songTotalDuration.setText("");
+    }
+
+    private final BroadcastReceiver finishPlayerActivity = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            finish();
+        }
+    };
+
     private void setClickEventsButtons() {
+        /**
+         * play previous song
+         */
         btnPrevious.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Controls.previousControl(context);
-                MainActivity.updateUIBottomBar(context);
             }
         });
 
+        /**
+         * play and pause current song
+         */
         btnPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -163,23 +188,23 @@ public class PlayerActivity extends BaseActivity {
                 } else {
                     Controls.playControl(context);
                 }
-                MainActivity.updateUIBottomBar(context);
             }
         });
 
+        /**
+         * play next song
+         */
         btnNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Controls.nextControl(context);
-                MainActivity.updateUIBottomBar(context);
             }
         });
-
 
         /**
          * Forward button click event
          * Forwards song specified seconds
-         * */
+         */
         btnForward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
@@ -199,7 +224,7 @@ public class PlayerActivity extends BaseActivity {
         /**
          * Backward button click event
          * Backward song to specified seconds
-         * */
+         */
         btnBackward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
@@ -217,25 +242,9 @@ public class PlayerActivity extends BaseActivity {
             }
         });
 
-        btnInfo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View arg0) {
-                String title = PlayerConstants.SONG_LIST.get(PlayerConstants.SONG_INDEX).getName();
-                String message = PlayerConstants.SONG_LIST.get(PlayerConstants.SONG_INDEX).toString();
-                Common.dialogConfirmOk(context, title, message, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                });
-            }
-        });
-
-
         /**
-         * Button Click event for Repeat button
-         * Enables repeat flag to true
-         * */
+         * repeat mode
+         */
         btnRepeat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
@@ -255,9 +264,8 @@ public class PlayerActivity extends BaseActivity {
         });
 
         /**
-         * Button Click event for Shuffle button
-         * Enables shuffle flag to true
-         * */
+         * shuffle mode
+         */
         btnShuffle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
@@ -275,8 +283,30 @@ public class PlayerActivity extends BaseActivity {
                 }
             }
         });
+
+        /**
+         * show info of current song
+         */
+        btnInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                String title = PlayerConstants.SONG_LIST.get(PlayerConstants.SONG_INDEX).getName();
+                String message = PlayerConstants.SONG_LIST.get(PlayerConstants.SONG_INDEX).toString();
+                Common.dialogConfirmOk(context, title, message, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+            }
+        });
     }
 
+    /**
+     * update UI for this player screen
+     *
+     * @param context
+     */
     public static void updateUIPlayer(Context context) {
         if (Common.isServiceRunning(context, MyService.class)) {
             Song song = PlayerConstants.SONG_LIST.get(PlayerConstants.SONG_INDEX);
@@ -288,12 +318,13 @@ public class PlayerActivity extends BaseActivity {
                 imgDisc.startAnimation(rotateAnim);
                 btnPlay.setImageResource(R.drawable.btn_pause);
             }
-        }
+        } else {
 
+        }
     }
 
     /**
-     * Update timer on seekbar
+     * Update timer on SeekBar
      */
     public void updateProgressBar() {
         mHandler.postDelayed(mUpdateTimeTask, 100);
@@ -329,12 +360,7 @@ public class PlayerActivity extends BaseActivity {
             MainActivity.updateUIBottomBar(context);
             updateUIPlayer(context);
         } else {
-            songProgressBar.setEnabled(false);
-            btnPlay.setEnabled(false);
-            btnForward.setEnabled(false);
-            btnBackward.setEnabled(false);
-            btnNext.setEnabled(false);
-            btnPrevious.setEnabled(false);
+            disablePlayerScreen();
         }
     }
 
@@ -343,6 +369,7 @@ public class PlayerActivity extends BaseActivity {
         Log.d(Common.TAG, "onDestroy PlayerActivity");
         super.onDestroy();
         mHandler.removeCallbacks(mUpdateTimeTask);
+        unregisterReceiver(finishPlayerActivity);
     }
 
 }

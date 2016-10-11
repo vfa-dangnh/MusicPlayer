@@ -170,7 +170,7 @@ public class SongUtil {
      * @param resize
      * @return
      */
-    public static Bitmap getAlbumart(Context context, Long album_id) {
+    public static Bitmap getAlbumArt(Context context, Long album_id) {
         Bitmap bm = null;
         BitmapFactory.Options options = new BitmapFactory.Options();
         try {
@@ -183,8 +183,8 @@ public class SongUtil {
                 pfd = null;
                 fd = null;
             }
-        } catch (Error ee) {
         } catch (Exception e) {
+            e.printStackTrace();
         }
         return bm;
     }
@@ -198,8 +198,8 @@ public class SongUtil {
         BitmapFactory.Options options = new BitmapFactory.Options();
         try {
             bm = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_disc, options);
-        } catch (Error ee) {
         } catch (Exception e) {
+            e.printStackTrace();
         }
         return bm;
     }
