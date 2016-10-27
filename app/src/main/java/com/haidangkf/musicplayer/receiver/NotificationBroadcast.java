@@ -58,13 +58,17 @@ public class NotificationBroadcast extends BroadcastReceiver {
             } else if (intent.getAction().equals(MyService.NOTIFY_DELETE)) {
                 Common.stopService(context, MyService.class);
             } else if (intent.getAction().equals(MyService.NOTIFY_SHOW_APP)) {
-                Intent i = new Intent(context, MainActivity.class);
-                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(i);
+                Intent i1 = new Intent(context, MainActivity.class);
+                i1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(i1);
 
                 Intent i2 = new Intent(context, PlayerActivity.class);
                 i2.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(i2);
+
+                // to collapse the notification bar
+                Intent i3 = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+                context.sendBroadcast(i3);
             }
         }
     }
