@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_online_search"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.haidangkf.musicplayer.online.search.OnlineSearch">
+
+    <TableRow
+        android:layout_marginTop="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <EditText
+            android:id="@+id/editTextOnlineSearch"
+            android:layout_marginLeft="5dp"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="Enter song name"
+            />
+        <ImageView
+            android:id="@+id/imgOnlineSearch"
+            android:background="@drawable/search_icon"
+            android:layout_gravity="center"
+            android:layout_marginRight="5dp"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            />
+    </TableRow>
+
+    <ListView
+        android:id="@+id/lvOnlineSearch"
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+</LinearLayout>

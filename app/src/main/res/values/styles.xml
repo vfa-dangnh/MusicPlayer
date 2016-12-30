@@ -30,4 +30,9 @@
         <item name="android:background">@color/colorPrimary</item>
     </style>
 
+    <style name="AppDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <item name="android:background">#5c8adf</item> //Your custom background color
+    </style>
+
 </resources>

@@ -31,6 +31,7 @@ import com.haidangkf.musicplayer.fragment.AlbumFragment;
 import com.haidangkf.musicplayer.fragment.ArtistFragment;
 import com.haidangkf.musicplayer.fragment.FolderFragment;
 import com.haidangkf.musicplayer.fragment.SongFragment;
+import com.haidangkf.musicplayer.online.OnlineMainActivity;
 import com.haidangkf.musicplayer.service.MyService;
 import com.haidangkf.musicplayer.utils.CircleTransform;
 import com.haidangkf.musicplayer.utils.Common;
@@ -141,7 +142,7 @@ public class MainActivity extends BaseActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_online) {
-            // play music online
+            startActivity(new Intent(MainActivity.this, OnlineMainActivity.class));
         } else if (id == R.id.nav_local) {
             loadFragmentClearBackStack(SongFragment.class.getName());
         } else if (id == R.id.nav_exit) {
