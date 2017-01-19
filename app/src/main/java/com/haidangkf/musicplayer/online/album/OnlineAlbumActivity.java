@@ -19,6 +19,7 @@ import com.google.gson.reflect.TypeToken;
 import com.haidangkf.musicplayer.R;
 import com.haidangkf.musicplayer.online.OnlineDefine;
 import com.haidangkf.musicplayer.online.music.OnlineListMusicActivity;
+import com.haidangkf.musicplayer.utils.Common;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -32,7 +33,7 @@ import cz.msebera.android.httpclient.Header;
 
 public class OnlineAlbumActivity extends AppCompatActivity {
 
-    ListView onlineAlbumListViet;
+    ListView onlineAlbumListView;
     AdapterOnlineAlbum adapter;
     ArrayList<OnlineAlbum> albumList = new ArrayList<>();
     ProgressDialog myProgress;
@@ -42,20 +43,20 @@ public class OnlineAlbumActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_online_album);
 
-        onlineAlbumListViet = (ListView)findViewById(R.id.onlineAlbumListViet);
+        onlineAlbumListView = (ListView) findViewById(R.id.onlineAlbumListView);
         adapter = new AdapterOnlineAlbum(OnlineAlbumActivity.this, R.layout.adapter_online_album, albumList);
-        onlineAlbumListViet.setAdapter(adapter);
+        onlineAlbumListView.setAdapter(adapter);
         adapter.setNotifyOnChange(true);
 
-        // khai bao dialog cho qua trình cap nhat co so du lieu
+        // dialog for updating database
         myProgress = new ProgressDialog(this);
-        myProgress.setTitle("Data loading  ...");
+        myProgress.setTitle("Data loading...");
         myProgress.setMessage("Please wait...");
         myProgress.setCancelable(false);
 
         getAlbumList();
 
-        onlineAlbumListViet.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        onlineAlbumListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 OnlineAlbum album = albumList.get(position);
@@ -71,25 +72,23 @@ public class OnlineAlbumActivity extends AppCompatActivity {
         });
     }
 
-    // kiem tra dien thoai co ket noi internet hay khong
+    // check Internet connection
     public boolean isOnline() {
-        ConnectivityManager cm =
+        ConnectivityManager connMgr =
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        return netInfo != null && netInfo.isConnectedOrConnecting();
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        return (networkInfo != null && networkInfo.isConnected());
     }
 
     public void getAlbumList() {
-
-        // neu dien thoai chua ket noi internet thi hien thi thong bao
+        // show error message if not connected to Internet
         if (!isOnline()) {
             AlertDialog.Builder dialog = new AlertDialog.Builder(OnlineAlbumActivity.this);
-            dialog.setTitle("Error!!");
-            dialog.setMessage("Please check your internet connection");
+            dialog.setTitle("Error!");
+            dialog.setMessage("Please check your Internet connection");
             dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-
                 }
             });
             dialog.show();
@@ -100,7 +99,6 @@ public class OnlineAlbumActivity extends AppCompatActivity {
         RequestParams params = new RequestParams();
         params.put("tag", OnlineDefine.GET_LIST_ALBUM);
         postToHost(params);
-
         myProgress.show();
     }
 
@@ -109,22 +107,22 @@ public class OnlineAlbumActivity extends AppCompatActivity {
         client.post(OnlineAlbumActivity.this, OnlineDefine.DOMAIN_INDEX, params, new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                String result = null; // for UTF-8 encoding
+                String result = null;
                 try {
-                    result = new String(responseBody, "UTF-8");
-                    Log.i("kq", "result " + result);
+                    result = new String(responseBody, "UTF-8"); // for UTF-8 encoding
+                    Log.d(Common.TAG, "post result: " + result);
                     String finalResult = removeUTF8BOM(result);
 
-                    if(finalResult.startsWith("[")){
+                    if (finalResult.startsWith("[")) { // first character of Json string
                         Gson gson = new Gson();
-                        Type listType = new TypeToken<List<OnlineAlbum>>() {}.getType();
+                        Type listType = new TypeToken<List<OnlineAlbum>>() {
+                        }.getType();
                         List<OnlineAlbum> list1 = (List<OnlineAlbum>) gson.fromJson(finalResult, listType);
 
                         albumList.clear();
                         albumList.addAll(list1);
                         adapter.notifyDataSetChanged();
                     }
-
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                     myProgress.cancel();
@@ -135,14 +133,14 @@ public class OnlineAlbumActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                Log.i("upload", "error --> " + error);
+                Log.d(Common.TAG, "error --> " + error);
                 myProgress.cancel();
             }
         });
     }
 
     private static String removeUTF8BOM(String s) {
-        while( !s.startsWith("[")  && s.length() > 0){
+        while (!s.startsWith("[") && s.length() > 0) {
             s = s.substring(1);
         }
         return s;

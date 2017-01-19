@@ -20,47 +20,41 @@ public class AdapterArtist extends ArrayAdapter<OnlineArtist> {
     private int layout;
     private ArrayList<OnlineArtist> list;
     View row;
-    public AdapterArtist(Context context, int textViewResourceId, ArrayList<OnlineArtist> objects)
-    {
-        super(context, textViewResourceId, objects);
 
+    public AdapterArtist(Context context, int textViewResourceId, ArrayList<OnlineArtist> objects) {
+        super(context, textViewResourceId, objects);
         this.context = (Activity) context;
         this.layout = textViewResourceId;
         this.list = objects;
     }
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         row = convertView;
         final Holder holder;
 
-        if(row == null) {
-            LayoutInflater inflater = ((Activity)context).getLayoutInflater();
+        if (row == null) {
+            LayoutInflater inflater = context.getLayoutInflater();
             row = inflater.inflate(layout, parent, false);
-
-
             holder = new Holder();
             holder.img = (ImageView) row.findViewById(R.id.adapter_artist_img);
             holder.name = (TextView) row.findViewById(R.id.adapter_artist_name);
-
             row.setTag(holder);
-        }
-        else
-        {
-            holder = (Holder)row.getTag();
+        } else {
+            holder = (Holder) row.getTag();
         }
 
         OnlineArtist artist = list.get(position);
         String name = artist.getArtist_name();
         String img = artist.getArtist_img_link();
-        String fullLinkImage = OnlineDefine.IMG_ARTIST_LINK+img;
-
-        holder.name.setText(""+name);
+        String fullLinkImage = OnlineDefine.IMG_ARTIST_LINK + img;
+        holder.name.setText(name);
         Picasso.with(context).load(fullLinkImage).into(holder.img);
 
         return row;
     }
-    public static class Holder
-    {
+
+    public static class Holder {
         ImageView img;
         TextView name;
     }

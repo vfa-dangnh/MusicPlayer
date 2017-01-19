@@ -22,9 +22,9 @@ public class OnlineMainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_online_main);
 
-        btnAlbum = (ImageButton)findViewById(R.id.onlineMainAlbum);
-        btnArtist = (ImageButton)findViewById(R.id.onlineMainArtist);
-        btnSearch = (ImageButton)findViewById(R.id.onlineMainSearch);
+        btnAlbum = (ImageButton) findViewById(R.id.onlineMainAlbum);
+        btnArtist = (ImageButton) findViewById(R.id.onlineMainArtist);
+        btnSearch = (ImageButton) findViewById(R.id.onlineMainSearch);
 
         btnAlbum.setOnClickListener(new View.OnClickListener() {
             @Override

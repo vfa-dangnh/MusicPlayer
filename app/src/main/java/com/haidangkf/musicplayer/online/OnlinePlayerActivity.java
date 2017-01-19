@@ -94,7 +94,7 @@ public class OnlinePlayerActivity extends BaseActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 mHandler.removeCallbacks(mUpdateTimeTask);
-                int totalDuration = MyApplication.mediaPlayer.getDuration();
+                int totalDuration = MyApplication.mp.getDuration();
                 int currentDuration = songUtil.progressToTimer(progress, totalDuration);
                 // Displaying Current Playing time
                 songCurrentPosition.setText("" + songUtil.milliSecondsToTimer(currentDuration));
@@ -102,18 +102,17 @@ public class OnlinePlayerActivity extends BaseActivity {
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-
                 mHandler.removeCallbacks(mUpdateTimeTask);
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 mHandler.removeCallbacks(mUpdateTimeTask);
-                int totalDuration = MyApplication.mediaPlayer.getDuration();
+                int totalDuration = MyApplication.mp.getDuration();
                 int currentDuration = songUtil.progressToTimer(seekBar.getProgress(), totalDuration);
 
                 // forward or backward to certain seconds
-                MyApplication.mediaPlayer.seekTo(currentDuration);
+                MyApplication.mp.seekTo(currentDuration);
 
                 // update timer progress again
                 updateProgressBar();
@@ -151,17 +150,13 @@ public class OnlinePlayerActivity extends BaseActivity {
         registerReceiver(finishPlayerActivity, new IntentFilter("OnlinePlayerActivity"));
     }
 
-
     private final BroadcastReceiver finishPlayerActivity = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            try{
+            try {
                 updateUIPlayer();
-
-            }catch (Exception e){
-
+            } catch (Exception e) {
             }
-
         }
     };
 
@@ -173,7 +168,6 @@ public class OnlinePlayerActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 MyApplication.preMusic();
-
             }
         });
 
@@ -184,7 +178,6 @@ public class OnlinePlayerActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 MyApplication.pauseMusic();
-
             }
         });
 
@@ -195,18 +188,26 @@ public class OnlinePlayerActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 MyApplication.nextMusic();
-
             }
         });
 
         /**
          * Forward button click event
-         * Forwards song specified seconds
+         * Forwards song to specified seconds
          */
         btnForward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-
+                // get current song position
+                int currentPosition = MyApplication.mp.getCurrentPosition();
+                // check if seekForward time is lesser than song duration
+                if (currentPosition + seekForwardTime < MyApplication.mp.getDuration()) {
+                    // forward song
+                    MyApplication.mp.seekTo(currentPosition + seekForwardTime);
+                } else {
+                    // forward to end position
+                    MyApplication.mp.seekTo(MyApplication.mp.getDuration());
+                }
             }
         });
 
@@ -217,7 +218,16 @@ public class OnlinePlayerActivity extends BaseActivity {
         btnBackward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-
+                // get current song position
+                int currentPosition = MyApplication.mp.getCurrentPosition();
+                // check if seekBackward time is greater than 0 sec
+                if (currentPosition - seekBackwardTime > 0) {
+                    // forward song
+                    MyApplication.mp.seekTo(currentPosition - seekBackwardTime);
+                } else {
+                    // backward to starting position
+                    MyApplication.mp.seekTo(0);
+                }
             }
         });
 
@@ -261,7 +271,7 @@ public class OnlinePlayerActivity extends BaseActivity {
 
     public static void updateUIPlayer() {
         songTitle.setText(MyApplication.currentSong.getName());
-        if (MyApplication.mediaPlayer.isPlaying()) {
+        if (MyApplication.mp.isPlaying()) {
             imgDisc.startAnimation(rotateAnim);
             btnPlay.setImageResource(R.drawable.btn_pause);
         } else {
@@ -282,8 +292,8 @@ public class OnlinePlayerActivity extends BaseActivity {
      */
     private Runnable mUpdateTimeTask = new Runnable() {
         public void run() {
-            long totalDuration = MyApplication.mediaPlayer.getDuration();
-            long currentDuration = MyApplication.mediaPlayer.getCurrentPosition();
+            long totalDuration = MyApplication.mp.getDuration();
+            long currentDuration = MyApplication.mp.getCurrentPosition();
 
             // Displaying Total Duration time
             songTotalDuration.setText("" + songUtil.milliSecondsToTimer(totalDuration));

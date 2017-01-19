@@ -1,6 +1,5 @@
 package com.haidangkf.musicplayer.online.album;
 
-
 public class OnlineAlbum {
     private String id_album;
     private String album_name;
@@ -14,7 +13,6 @@ public class OnlineAlbum {
         this.setAlbum_name(album_name);
         this.setAlbum_img_link(album_img_link);
     }
-
 
     public String getId_album() {
         return id_album;

@@ -1,7 +1,5 @@
 package com.haidangkf.musicplayer.online.music;
 
-
-
 public class OnlineSong {
     private String id_music;
     private String name;
@@ -19,7 +17,6 @@ public class OnlineSong {
         this.setAlbum_name(album_name);
         this.setArtist_name(artist_name);
     }
-
 
     public String getId_music() {
         return id_music;

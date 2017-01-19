@@ -7,7 +7,7 @@
     tools:context="com.haidangkf.musicplayer.online.album.OnlineAlbumActivity">
 
     <ListView
-        android:id="@+id/onlineAlbumListViet"
+        android:id="@+id/onlineAlbumListView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
          />

@@ -203,7 +203,7 @@ public class PlayerActivity extends BaseActivity {
 
         /**
          * Forward button click event
-         * Forwards song specified seconds
+         * Forwards song to specified seconds
          */
         btnForward.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -18,12 +18,12 @@ public class SongInfoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_song_info);
 
-        txtSongName = (TextView)findViewById(R.id.songInfoName);
-        txtAlbum = (TextView)findViewById(R.id.songInfoAlbum);
-        txtArtist = (TextView)findViewById(R.id.songInfoArtist);
+        txtSongName = (TextView) findViewById(R.id.songInfoName);
+        txtAlbum = (TextView) findViewById(R.id.songInfoAlbum);
+        txtArtist = (TextView) findViewById(R.id.songInfoArtist);
 
-        txtSongName.setText(""+ MyApplication.currentSong.getName());
-        txtAlbum.setText(""+ MyApplication.currentSong.getAlbum_name());
-        txtArtist.setText(""+ MyApplication.currentSong.getArtist_name());
+        txtSongName.setText("" + MyApplication.currentSong.getName());
+        txtAlbum.setText("" + MyApplication.currentSong.getAlbum_name());
+        txtArtist.setText("" + MyApplication.currentSong.getArtist_name());
     }
 }

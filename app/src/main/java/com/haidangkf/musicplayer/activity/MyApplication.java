@@ -1,6 +1,5 @@
 package com.haidangkf.musicplayer.activity;
 
-
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
@@ -13,74 +12,73 @@ import com.haidangkf.musicplayer.online.music.OnlineSong;
 
 import java.util.ArrayList;
 
-public class MyApplication extends Application{
+public class MyApplication extends Application {
 
     public static Context context;
     public static ArrayList<OnlineSong> songList = new ArrayList<>();
-    public static MediaPlayer mediaPlayer = new MediaPlayer();
+    public static MediaPlayer mp = new MediaPlayer();
 
     public static OnlineSong currentSong = new OnlineSong();
     public static int index;
 
     @Override
-    public void onCreate(){
+    public void onCreate() {
         super.onCreate();
         context = this;
     }
 
-    public static void playMusic(String url){
-        try{
+    public static void playMusic(String url) {
+        try {
             Uri myUri = Uri.parse(url);
 
-            mediaPlayer.release();
-            mediaPlayer = new MediaPlayer();
+            mp.release();
+            mp = new MediaPlayer();
 
-            mediaPlayer.setDataSource(context, myUri);
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mediaPlayer.prepare(); //don't use prepareAsync for mp3 playback
-            mediaPlayer.start();
+            mp.setDataSource(context, myUri);
+            mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            mp.prepare(); //don't use prepareAsync for mp3 playback
+            mp.start();
 
             Intent x = new Intent("OnlinePlayerActivity");
             x.putExtra("message", "play");
             context.sendBroadcast(x);
 
-            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
-                public void onCompletion(MediaPlayer mp) {
+                public void onCompletion(MediaPlayer mediaPlayer) {
                     nextMusic();
                 }
             });
 
-        }catch (Exception e){
-
+        } catch (Exception e) {
         }
     }
 
-    public static void openPlayMusicPlayer(){
-        try{
-           currentSong = MyApplication.songList.get(MyApplication.index);
-            String url = OnlineDefine.MUSIC_LINK+currentSong.getLink();
+    public static void openPlayMusicPlayer() {
+        try {
+            currentSong = MyApplication.songList.get(MyApplication.index);
+            String url = OnlineDefine.MUSIC_LINK + currentSong.getLink();
             MyApplication.playMusic(url);
-        }catch (Exception e){
+        } catch (Exception e) {
 
         }
     }
 
-    public static void pauseMusic(){
-        if(mediaPlayer.isPlaying())
-            mediaPlayer.pause();
+    public static void pauseMusic() {
+        if (mp.isPlaying())
+            mp.pause();
         else
-            mediaPlayer.start();
+            mp.start();
 
         Intent x = new Intent("OnlinePlayerActivity");
         x.putExtra("message", "play");
         context.sendBroadcast(x);
     }
 
-    public static void nextMusic(){
+    public static void nextMusic() {
         int musicListSize = songList.size();
 
-        if(index >= musicListSize - 1){
+        if (index >= musicListSize - 1) {
             index = 0;
         } else {
             index++;
@@ -89,10 +87,10 @@ public class MyApplication extends Application{
         openPlayMusicPlayer();
     }
 
-    public static void preMusic(){
+    public static void preMusic() {
         int musicListSize = songList.size();
 
-        if(index <= 0){
+        if (index <= 0) {
             index = musicListSize - 1;
         } else {
             index--;
@@ -110,15 +108,15 @@ public class MyApplication extends Application{
 //            try{
 //                Uri myUri = Uri.parse(urls[0]);
 //
-//                if(mediaPlayer.isPlaying()){
-//                    mediaPlayer.release();
-//                    mediaPlayer = new MediaPlayer();
+//                if(mp.isPlaying()){
+//                    mp.release();
+//                    mp = new mp();
 //                }
 //
-//                mediaPlayer.setDataSource(context, myUri);
-//                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-//                mediaPlayer.prepare(); //don't use prepareAsync for mp3 playback
-//                mediaPlayer.start();
+//                mp.setDataSource(context, myUri);
+//                mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+//                mp.prepare(); //don't use prepareAsync for mp3 playback
+//                mp.start();
 //            }catch (Exception e){
 //
 //            }

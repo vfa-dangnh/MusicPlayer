@@ -19,46 +19,38 @@ public class AdapterOnlineAlbum extends ArrayAdapter<OnlineAlbum> {
     private int layout;
     private ArrayList<OnlineAlbum> list;
     View row;
-    public AdapterOnlineAlbum(Context context, int textViewResourceId, ArrayList<OnlineAlbum> objects)
-    {
-        super(context, textViewResourceId, objects);
 
+    public AdapterOnlineAlbum(Context context, int textViewResourceId, ArrayList<OnlineAlbum> objects) {
+        super(context, textViewResourceId, objects);
         this.context = (Activity) context;
         this.layout = textViewResourceId;
         this.list = objects;
     }
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         row = convertView;
         final Holder holder;
 
-        if(row == null) {
-            LayoutInflater inflater = ((Activity)context).getLayoutInflater();
+        if (row == null) {
+            LayoutInflater inflater = context.getLayoutInflater();
             row = inflater.inflate(layout, parent, false);
-
-
             holder = new Holder();
             holder.img = (ImageView) row.findViewById(R.id.adapter_online_album_img);
-
             row.setTag(holder);
-        }
-        else
-        {
-            holder = (Holder)row.getTag();
+        } else {
+            holder = (Holder) row.getTag();
         }
 
         OnlineAlbum album = list.get(position);
-
         String img = album.getAlbum_img_link();
-        String fullLinkImage = OnlineDefine.IMG_ALBUM_LINK+img;
-
+        String fullLinkImage = OnlineDefine.IMG_ALBUM_LINK + img;
         Picasso.with(context).load(fullLinkImage).into(holder.img);
 
         return row;
     }
-    public static class Holder
-    {
-        ImageView img;
 
+    public static class Holder {
+        ImageView img;
     }
 }
